@@ -8,21 +8,22 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AccessibleButton } from '@/components/accessible-button';
 import { CollapsiblePreviewSection } from '@/components/collapsible-preview-section';
 import { ResponsiveContainer } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import {
   NATIVE_LAND_LANGUAGE_CENTERING_NOTE,
   NATIVE_LAND_RESOURCE_LINKS,
 } from '@/constants/native-land-resources';
-import { Palette, SurfaceColors } from '@/constants/theme';
+import { Fonts, Palette, SurfaceColors } from '@/constants/theme';
 import { useAppStateContext } from '@/context/app-state-context';
 import { usePageSections } from '@/context/page-sections-context';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
@@ -144,7 +145,7 @@ function NativeLandResourceLinks() {
   return (
     <View style={styles.bulletList}>
       {NATIVE_LAND_RESOURCE_LINKS.map((resource) => (
-        <ThemedView key={resource.label} style={styles.resourceLinkBlock}>
+        <View key={resource.label} style={styles.resourceLinkBlock}>
           <Pressable
             accessibilityRole="link"
             accessibilityLabel={`Open ${resource.label}`}
@@ -154,7 +155,7 @@ function NativeLandResourceLinks() {
             <ThemedText type="link">{resource.label}</ThemedText>
           </Pressable>
           <ThemedText>{resource.description}</ThemedText>
-        </ThemedView>
+        </View>
       ))}
     </View>
   );
@@ -172,12 +173,12 @@ function NearbySovereigntiesList({ items }: { items: NearbySovereignty[] }) {
   return (
     <View style={styles.nearbyList}>
       {items.map((item) => (
-        <ThemedView key={`${item.category}-${item.name}`} style={styles.nearbyRow}>
+        <View key={`${item.category}-${item.name}`} style={styles.nearbyRow}>
           <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
           <ThemedText>
             {item.category} record, about {formatDistance(item.approximateDistanceMeters)} from here
           </ThemedText>
-        </ThemedView>
+        </View>
       ))}
     </View>
   );
@@ -274,10 +275,11 @@ export default function WhereAreWeScreen() {
     setSections([
       { id: 'compass', label: 'Compass' },
       { id: 'location', label: 'Location Context' },
+      { id: 'placenames', label: 'Placename Records' },
       { id: 'languages', label: 'Languages' },
       { id: 'territories', label: 'Territories' },
       { id: 'treaties', label: 'Treaties' },
-      { id: 'resources', label: 'Native Land Resources' },
+      { id: 'resources', label: 'Native Land Resources and Map Tools' },
       { id: 'nearby', label: 'Nearby Sovereignties' },
     ]);
     setJumpHandler((id) => {
@@ -320,6 +322,11 @@ export default function WhereAreWeScreen() {
   const languages = context?.languages ?? [];
   const treaties = context?.treaties ?? [];
   const sources = context?.referenceLinks ?? [];
+  const placeNames = context?.placeNames ?? [];
+  const nameMeanings = context?.nameMeanings ?? [];
+  const coordinateLabel = coordinate
+    ? `${formatCoordinate(coordinate.latitude)}, ${formatCoordinate(coordinate.longitude)}`
+    : '';
 
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
@@ -346,14 +353,32 @@ export default function WhereAreWeScreen() {
               when you have traveled into a new area that returns new information from the Native
               Land API, along with all information available for the current location.
             </ThemedText>
-            <AccessibleButton
-              label="Get My Coordinates"
+            <Pressable
               onPress={() => {
                 void loadLocationContext();
               }}
-              variant="primary"
+              accessibilityRole="button"
+              accessibilityLabel={
+                coordinate
+                  ? `Refresh coordinates ${coordinateLabel}`
+                  : 'Get My Coordinates'
+              }
               accessibilityHint="Requests location permission and loads Indigenous context for your current coordinates"
-            />
+              style={({ pressed }) => [
+                styles.coordinateButton,
+                coordinate && styles.coordinateButtonLoaded,
+                pressed && styles.buttonPressed,
+              ]}>
+              <Text style={styles.coordinateButtonPrimaryText}>
+                {coordinate ? 'Coordinates Acquired' : 'Get My Coordinates'}
+              </Text>
+              {coordinate ? (
+                <View style={styles.coordinateButtonDetailRow}>
+                  <IconSymbol name="arrow.clockwise" size={18} color={Palette.yosemiteIvory} />
+                  <Text style={styles.coordinateButtonDetailText}>{coordinateLabel}</Text>
+                </View>
+              ) : null}
+            </Pressable>
           </ThemedView>
 
           <ThemedView
@@ -389,9 +414,30 @@ export default function WhereAreWeScreen() {
             <>
               <View
                 onLayout={(event) => {
+                  sectionOffsets.current.placenames = event.nativeEvent.layout.y;
+                }}>
+                <CollapsiblePreviewSection
+                  title="Placename Records Returned for This Location"
+                  collapsible={placeNames.length + nameMeanings.length > 4}>
+                  <BulletList items={placeNames} emptyText="No placename records were returned." />
+                  {nameMeanings.length > 0 ? (
+                    <View style={styles.contentGroup}>
+                      <ThemedText type="defaultSemiBold">Name Meanings Provided by the API</ThemedText>
+                      {nameMeanings.map((entry, index) => (
+                        <ThemedText key={`${entry.name}-${entry.meaning}-${index}`}>
+                          • {entry.name}: {entry.meaning}
+                        </ThemedText>
+                      ))}
+                    </View>
+                  ) : null}
+                </CollapsiblePreviewSection>
+              </View>
+
+              <View
+                onLayout={(event) => {
                   sectionOffsets.current.languages = event.nativeEvent.layout.y;
                 }}>
-                <CollapsiblePreviewSection title="Languages Returned Here" collapsible={languages.length > 4}>
+                <CollapsiblePreviewSection title="Languages Connected to This Location" collapsible={languages.length > 4}>
                 {context.infoMessage ? <ThemedText>{context.infoMessage}</ThemedText> : null}
                 {context.keyRequired ? (
                   <ThemedText>
@@ -412,8 +458,7 @@ export default function WhereAreWeScreen() {
                 onLayout={(event) => {
                   sectionOffsets.current.territories = event.nativeEvent.layout.y;
                 }}>
-                <CollapsiblePreviewSection title="Territories Returned Here" collapsible={territories.length > 4}>
-                <ThemedText type="defaultSemiBold">Territory records returned for this location</ThemedText>
+                <CollapsiblePreviewSection title="Territories in This Location" collapsible={territories.length > 4}>
                 <BulletList items={territories} emptyText="No territory records were returned." />
                 </CollapsiblePreviewSection>
               </View>
@@ -422,10 +467,15 @@ export default function WhereAreWeScreen() {
                 onLayout={(event) => {
                   sectionOffsets.current.treaties = event.nativeEvent.layout.y;
                 }}>
-                <CollapsiblePreviewSection title="Treaties Returned Here" collapsible={treaties.length > 4}>
+                <CollapsiblePreviewSection title="Treaties Connected to This Location" collapsible={treaties.length > 4}>
                 <ThemedText>
                   Treaty records identify agreements returned by Native Land for this location. The
-                  app displays the record names returned by the API and does not interpret treaty terms.
+                  records can point to important legal and historical relationships, but the app only
+                  displays the record names returned by the API and does not interpret treaty terms.
+                </ThemedText>
+                <ThemedText>
+                  A useful place to start your own research is Native Governance Center&apos;s treaty education
+                  resources, including Why Treaties Matter: https://nativegov.org/resources/why-do-treaties-matter/
                 </ThemedText>
                 <ThemedText type="defaultSemiBold">Treaty records returned for this location</ThemedText>
                 <BulletList items={treaties} emptyText="No treaty records were returned." />
@@ -483,6 +533,44 @@ const styles = StyleSheet.create({
   bulletList: {
     gap: 4,
   },
+  coordinateButton: {
+    minHeight: 48,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: Palette.cedar,
+  },
+  coordinateButtonLoaded: {
+    borderWidth: 1,
+    borderColor: Palette.campfire,
+    backgroundColor: Palette.pine,
+  },
+  coordinateButtonPrimaryText: {
+    color: Palette.yosemiteIvory,
+    fontFamily: Fonts.sans,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  coordinateButtonDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  coordinateButtonDetailText: {
+    color: Palette.yosemiteIvory,
+    fontFamily: Fonts.sans,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  buttonPressed: {
+    opacity: 0.72,
+  },
   loadingBlock: {
     alignItems: 'center',
     gap: 10,
@@ -513,14 +601,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   nearbyRow: {
-    borderRadius: 8,
-    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(102, 49, 12, 0.24)',
+    paddingTop: 10,
     gap: 2,
   },
   resourceLinkBlock: {
-    borderRadius: 8,
-    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(102, 49, 12, 0.24)',
+    paddingTop: 10,
     gap: 2,
+  },
+  contentGroup: {
+    gap: 6,
   },
   headingCompassBlock: {
     flexDirection: 'row',

@@ -27,10 +27,11 @@ Flow:
 1. User taps **Get My Coordinates**.
 2. The app requests foreground location permission.
 3. If permission is granted, the app reads current coordinates.
-4. The app starts heading updates when available.
-5. The app calls Native Land with the latitude and longitude.
-6. The app displays records.
-7. The app checks nearby sample points for Nearby Sovereignties.
+4. The button changes into a loaded coordinate state with the coordinate pair and refresh icon.
+5. The app starts heading updates when available.
+6. The app calls Native Land with the latitude and longitude.
+7. The app displays records using the same section wording and structure used by park/profile Native Land sections where the record types overlap.
+8. The app checks nearby sample points for Nearby Sovereignties.
 
 If permission is denied, the app displays a message and does not continue the lookup.
 

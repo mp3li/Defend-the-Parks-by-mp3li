@@ -32,7 +32,6 @@ Rules:
 - Use Ivory `#f7efe2` for selected bottom navigation text/icons and app-title text.
 - Use ivory only when contrast is needed for readable surfaces or text.
 - Avoid returning to the previous Yosemite palette unless the theme is intentionally changed.
-- Keep old palette notes in the local untracked backup file only.
 
 ## Typography
 

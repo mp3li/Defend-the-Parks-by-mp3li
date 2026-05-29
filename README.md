@@ -100,10 +100,9 @@ docs/
   TESTING_GUIDE.md
 ```
 
-Local-only notes:
+Local-only note:
 
-- `OLD_COLOR_PALETTE_BACKUP_UNTRACKED.md` is intentionally ignored and should not be pushed.
-- API keys belong in `learning-react-native-app/.env`, which is also ignored.
+- API keys belong in `learning-react-native-app/.env`, which is ignored.
 
 ## Final Project Coverage
 

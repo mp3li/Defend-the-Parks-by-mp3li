@@ -91,8 +91,11 @@ Check:
 - the app requests foreground location permission;
 - loading state shows a spinning compass and `Getting your coordinates...`;
 - coordinates display after permission is granted;
+- coordinate button changes style after coordinates load, shows the coordinate pair, and includes a refresh icon;
 - Native Land records display when returned;
+- Placename Records appears as its own section when records are returned;
 - languages, territories, treaties, resource links, and source links are visible;
+- treaty records include the same research-starting note used on park/profile sections;
 - Nearby Sovereignties displays approximate nearby records when available;
 - in-app compass area says `Get your Coordinates to use the in-app compass.` before heading data is available;
 - heading updates when device heading data is available;

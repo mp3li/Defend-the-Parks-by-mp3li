@@ -150,7 +150,9 @@ Use this checklist for grading:
 - Tap **Get My Coordinates**.
 - Confirm location permission is requested.
 - Confirm coordinates display after permission is granted.
+- Confirm the **Get My Coordinates** button changes after coordinates load, shows the coordinate pair, and includes a refresh icon.
 - Confirm the loading compass appears while coordinates are loading.
+- Confirm Placename Records, Languages, Territories, Treaties, Native Land Public Resources and Map Tools, Nearby Sovereignties, and Sources match the current shared section style.
 - Confirm languages, territories, treaties, source links, and resource links display when returned.
 - Confirm Nearby Sovereignties displays approximate nearby records when available.
 - Confirm the in-app compass copy says `Get your Coordinates to use the in-app compass.` before heading data is available.
