@@ -163,7 +163,7 @@ export default function HomeScreen() {
             </Pressable>
             <View style={!aboutExpanded && styles.aboutPreview}>
               <ThemedText>
-                This app helps you explore national parks while also learning about the deeper
+                This app helps you explore National Parks while also learning about the deeper
                 history of the land they exist on. Many of the places we now call parks have been
                 home to Indigenous nations for thousands of years.
                 {'\n\n'}

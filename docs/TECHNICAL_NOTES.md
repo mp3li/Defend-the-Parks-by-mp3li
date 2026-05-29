@@ -107,6 +107,7 @@ Implementation locations:
 Notifications use `expo-notifications`.
 
 The app schedules local notifications only for Journey Mode context changes. Notification permission is requested only when the user turns Journey Mode on.
+The notification module is lazy-loaded by the Journey Mode service so normal app startup does not import notification behavior before the user needs it.
 
 Expo Go may warn that full notification support is limited. The source implementation remains present for review and for native-build runtimes.
 
@@ -138,6 +139,8 @@ The app uses:
 - accessible buttons;
 - responsive spacing helpers;
 - custom font loading through `expo-font`.
+
+The Search by State list uses memoized rows and FlatList render-window settings to keep state-list updates responsive.
 
 ## National Park Service Scope
 

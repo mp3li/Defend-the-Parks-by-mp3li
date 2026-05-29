@@ -62,6 +62,7 @@ Check:
 
 - Search tab appears in the bottom navigation with a search icon;
 - search input filters states by name or abbreviation;
+- state rows update smoothly while filtering;
 - tapping a state opens that state's park list;
 - image gallery appears under the state list;
 - park rows display data returned from the NPS API;
@@ -110,6 +111,7 @@ Check:
 - **Begin Journey Mode** starts the Journey Mode permission/location flow;
 - How Journey Mode Works panel has a readable glass background;
 - notification/background permission prompts appear when the runtime supports them;
+- notification behavior is not imported until Journey Mode notification permissions or scheduling are needed;
 - Last update displays `Journey Mode not yet enabled` before Journey Mode starts;
 - current location result sections display after coordinates are loaded.
 

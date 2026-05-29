@@ -1,7 +1,7 @@
 import type { Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,6 +18,38 @@ import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { fetchNationalParksGalleryImages } from '@/services/nps-api';
 import type { NpsParkImage } from '@/types/parks';
+
+const STATE_ROW_HEIGHT = 74;
+
+type StateListItem = (typeof US_STATES)[number];
+
+const StateRow = React.memo(function StateRow({
+  item,
+  borderColor,
+  onOpen,
+}: {
+  item: StateListItem;
+  borderColor: string;
+  onOpen: (code: string) => void;
+}) {
+  return (
+    <Pressable
+      onPress={() => onOpen(item.code)}
+      accessibilityRole="button"
+      accessibilityLabel={`Open parks for ${item.name}`}
+      style={({ pressed }) => [
+        styles.stateRow,
+        glassSurfaceStyle,
+        {
+          borderColor,
+        },
+        pressed && styles.pressed,
+      ]}>
+      <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
+      <ThemedText>{item.code}</ThemedText>
+    </Pressable>
+  );
+});
 
 export default function StatesScreen() {
   const router = useRouter();
@@ -77,6 +109,20 @@ export default function StatesScreen() {
     );
   }, [query]);
 
+  const openState = useCallback(
+    (code: string) => {
+      router.push(`/states/${code}` as Href);
+    },
+    [router]
+  );
+
+  const renderState = useCallback(
+    ({ item }: { item: StateListItem }) => (
+      <StateRow item={item} borderColor={borderColor} onOpen={openState} />
+    ),
+    [borderColor, openState]
+  );
+
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
       <ScreenBackground>
@@ -85,6 +131,16 @@ export default function StatesScreen() {
           ref={listRef}
           data={filteredStates}
           keyExtractor={(item) => item.code}
+          initialNumToRender={16}
+          maxToRenderPerBatch={12}
+          updateCellsBatchingPeriod={40}
+          windowSize={7}
+          removeClippedSubviews
+          getItemLayout={(_, index) => ({
+            length: STATE_ROW_HEIGHT + gap,
+            offset: (STATE_ROW_HEIGHT + gap) * index,
+            index,
+          })}
           contentContainerStyle={{ gap, paddingTop: padding, paddingBottom: 28 }}
           ListHeaderComponent={
             <View style={{ gap }}>
@@ -121,23 +177,7 @@ export default function StatesScreen() {
 
             </View>
           }
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() => router.push(`/states/${item.code}` as Href)}
-              accessibilityRole="button"
-              accessibilityLabel={`Open parks for ${item.name}`}
-              style={({ pressed }) => [
-                styles.stateRow,
-                glassSurfaceStyle,
-                {
-                  borderColor,
-                },
-                pressed && styles.pressed,
-              ]}>
-              <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
-              <ThemedText>{item.code}</ThemedText>
-            </Pressable>
-          )}
+          renderItem={renderState}
           ListEmptyComponent={
               <ThemedView style={[styles.emptyState, glassSurfaceStyle]}>
               <ThemedText>No states match your search.</ThemedText>
@@ -180,6 +220,7 @@ const styles = StyleSheet.create({
   stateRow: {
     borderWidth: 1,
     borderRadius: 10,
+    minHeight: STATE_ROW_HEIGHT,
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 4,

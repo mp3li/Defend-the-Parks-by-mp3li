@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
 
 import { fetchIndigenousContextByCoordinates } from '@/services/native-land-api';
 import type { IndigenousContextData } from '@/types/parks';
@@ -65,6 +64,8 @@ export async function getLastJourneyModeEvent() {
 }
 
 export async function configureNotificationBehavior() {
+  const Notifications = await import('expo-notifications');
+
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
@@ -77,6 +78,7 @@ export async function configureNotificationBehavior() {
 }
 
 export async function requestJourneyModePermissions() {
+  const Notifications = await import('expo-notifications');
   const notificationPermission = await Notifications.requestPermissionsAsync();
   const backgroundAvailable = await Location.isBackgroundLocationAvailableAsync();
 
@@ -154,6 +156,7 @@ export async function processJourneyModeLocation(latitude: number, longitude: nu
   await AsyncStorage.setItem(JOURNEY_MODE_SIGNATURE_KEY, nextSignature);
 
   if (previousSignature && previousSignature !== nextSignature) {
+    const Notifications = await import('expo-notifications');
     const event: JourneyModeEvent = {
       previousSignature,
       nextSignature,
