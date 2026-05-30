@@ -22,6 +22,7 @@ What is implemented:
 - Registers a background location task in source code with `expo-task-manager`.
 - Compares new returned territory context to the saved baseline when background updates are available.
 - Schedules a local notification when Journey Mode detects changed returned context.
+- On desktop web and mobile web, checks for updated Journey Mode coordinate context every 5 minutes while the browser tab remains open.
 
 Implementation locations:
 
@@ -48,6 +49,8 @@ What is implemented:
 - The app consumes the National Park Service API.
 - The app consumes the Native Land API.
 - Retrieved API data is displayed in Home, Search, state location lists, profile pages, Where Are We?, Nearby Sovereignties, and Journey Mode result surfaces.
+- The deployed web app routes NPS requests through a Cloudflare Pages Function so NPS data still loads reliably from the browser.
+- The deployed web app validates early access through a Cloudflare Pages Function and a Cloudflare secret, not a hardcoded access code.
 
 Implementation locations:
 
@@ -56,6 +59,8 @@ Implementation locations:
 - `learning-react-native-app/services/nps-api.ts`
 - `learning-react-native-app/services/native-land-api.ts`
 - `learning-react-native-app/services/journey-mode.ts`
+- `functions/api/nps/[[path]].js`
+- `functions/api/access-code.js`
 
 ## Requirement 3: Display Retrieved API Data
 
@@ -111,6 +116,8 @@ What is implemented:
 - Fixed app title on every screen.
 - Mobile bottom tab navigation.
 - Web header navigation.
+- Mobile web uses the mobile-style top and bottom navigation while desktop web uses the wider header navigation.
+- Web nav icons are rendered without depending on browser icon-font loading, so desktop web and mobile web show the actual icons instead of missing-font boxes.
 - Jump To compass menu for long screens.
 - Accessible buttons.
 - Mobile collapsible preview sections that start partially visible.
@@ -131,6 +138,7 @@ Implementation locations:
 - `learning-react-native-app/components/screen-background.tsx`
 - `learning-react-native-app/components/accessible-button.tsx`
 - `learning-react-native-app/components/themed-text.tsx`
+- `learning-react-native-app/components/ui/icon-symbol.tsx`
 - `learning-react-native-app/app/(tabs)/_layout.tsx`
 - `learning-react-native-app/app/(tabs)/where-are-we.tsx`
 
@@ -142,6 +150,10 @@ Use this checklist for grading:
 - Run `npx expo start`.
 - Confirm Home loads with the fixed app title.
 - Confirm mobile shows bottom navigation and web shows header navigation.
+- Confirm mobile-width web shows the mobile-style upper/lower navigation.
+- Confirm desktop web nav and mobile web bottom nav show actual icons, not missing-font boxes.
+- Confirm the deployed site opens at `https://defendtheparks.mp3li.online`.
+- Confirm the deployed site asks for an early access code without publishing that code in the repo.
 - Confirm the Jump To compass menu opens.
 - Confirm Featured Park of the Day loads from the NPS API.
 - Confirm the save/remove park button persists saved state.
@@ -173,7 +185,7 @@ Use this checklist for grading:
 - Review `app/_layout.tsx` for deep-link handling.
 - Review `where-are-we.tsx` for AppState lifecycle handling.
 
-## Testing, Expo Go, and Development Build Plan
+## Testing, Expo Go, Web Deployment, and Grading Notes
 
 Testing so far has been done primarily on iPhone through Expo. That workflow supports review of the app shell, navigation, API data display, foreground Where Are We? coordinate lookup, heading/compass behavior when available, Saved Parks, Jump To, and the visible Journey Mode screen flow.
 
@@ -185,6 +197,21 @@ The repo includes the Journey Mode background-location and notification implemen
 - notification permission choices;
 - whether the operating system allows background updates at that moment.
 
-For instructor grading, the source implementation is available for review in GitHub, and a development build can be provided so Journey Mode background behavior can be tested outside Expo Go when the instructor needs runtime verification of the native behavior.
+The app-store-style native runtime path is represented in source code, especially:
+
+- `learning-react-native-app/tasks/journey-mode-task.ts`
+- `learning-react-native-app/services/journey-mode.ts`
+- `learning-react-native-app/app/(tabs)/journey-mode.tsx`
+- `learning-react-native-app/components/journey-mode-panel.tsx`
+
+Because my available testing devices are in the Apple ecosystem and a paid Apple Developer account is a financial barrier, I did not distribute an iOS development or app-store build for grading. Instead, the source implementation is documented for review, and the app is deployed on Cloudflare Pages as an accessible web build that demonstrates the foreground GPS/API workflow, Journey Mode start/stop flow, current-location results, and web tab-open polling behavior.
 
 Foreground location lookup, external API display, UI animation, AppState handling, deep-link source, local persistence, and source-level Journey Mode implementation are all available for review through the standard GitHub and Expo workflow.
+
+The deployed web version is available at:
+
+```text
+https://defendtheparks.mp3li.online
+```
+
+The web deployment is early-access protected. The access code is not published in the repo; it is configured through Cloudflare environment secrets.

@@ -56,7 +56,8 @@ Rules:
 - Use `ResponsiveContainer` and `useResponsiveLayout` for spacing.
 - Keep the global app header fixed at the top.
 - Keep the tab bar fixed at the bottom on mobile.
-- On web, hide the bottom tab bar and use header navigation with text plus icons.
+- On desktop web, hide the bottom tab bar and use header navigation with text plus icons.
+- On mobile-width web, keep the mobile-style header and bottom tab bar so browser testing preserves the mobile app experience.
 - Place long-screen navigation in the **Jump To** compass menu.
 - Use the Back strip only after the user leaves Home.
 - Back should follow navigation history; Return to Homepage should go directly to Home.
@@ -66,6 +67,8 @@ Rules:
 - Nested content inside a glass section should usually use plain `View` wrappers, spacing, dividers, and subheaders instead of additional surface backgrounds.
 - Avoid large empty framed spaces at the top of screens.
 - Content should scroll cleanly under the fixed header without jumpy layout changes.
+- Desktop web content should use readable width constraints and leave enough background visible.
+- Mobile web should use mobile image and gallery sizing rather than desktop two-column gallery sizing.
 
 ## Backgrounds and Surfaces
 
@@ -76,6 +79,7 @@ Rules:
 - Use `denise-jans-XCJt9Z3_0Ks-unsplash` for web Home, Where Are We?, Search, state pages, park pages, and Saved Parks.
 - Use `kyle-loftus-IG1m3RomhPI-unsplash` for web Journey Mode.
 - Use the shared in-app compass visual style on Where Are We?, Journey Mode, and the Jump To button: night face, campfire border, faint ivory crosshairs, campfire upper needle, and ivory lower needle.
+- Web navigation icons must render as app-drawn shapes from `components/ui/icon-symbol.tsx` instead of depending on browser icon-font glyphs.
 - Backgrounds should stay dimmed/glassy enough for text readability.
 - Use shared glass surface styles from `components/screen-background.tsx`.
 - Avoid section backgrounds that visually merge into the nav bars.
@@ -132,6 +136,16 @@ Collapsible section rules:
 - Journey Mode must remain opt-in.
 - Notification and background permission requests should happen only when Journey Mode is enabled.
 - Background behavior should be described honestly as platform/runtime dependent.
+- Web Journey Mode should be described as tab-open polling, not native background tracking.
+
+## Web Deployment Rules
+
+- The deployed web app lives at `https://defendtheparks.mp3li.online`.
+- The web deployment is early-access protected.
+- Do not document or commit the actual early-access code.
+- Keep early-access validation server-side through `functions/api/access-code.js` and Cloudflare secrets.
+- Keep NPS web requests routed through `functions/api/nps/[[path]].js` so deployed browsers load park data reliably.
+- Real API keys and access values belong in ignored local environment files or Cloudflare environment variables/secrets, never in tracked docs or source.
 
 ## Accessibility
 

@@ -93,7 +93,7 @@ export function GlobalSnackbar() {
   }
 
   return (
-    <View pointerEvents="none" style={styles.wrapper}>
+    <View style={styles.wrapper}>
       <View
         style={[
           styles.container,
@@ -113,6 +113,7 @@ const styles = StyleSheet.create({
     bottom: 24,
     paddingHorizontal: 16,
     zIndex: 99,
+    pointerEvents: 'none',
   },
   container: {
     borderRadius: 10,

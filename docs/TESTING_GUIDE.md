@@ -12,7 +12,15 @@ npm install
 npx expo start --clear
 ```
 
-Open the app in Expo Go, iOS Simulator, Android Emulator, or web preview. Current hands-on testing has been focused on iPhone through Expo.
+Open the app in Expo Go, iOS Simulator, Android Emulator, web preview, or the deployed early-access web app. Current hands-on native-style testing has been focused on iPhone through Expo.
+
+Deployed web URL:
+
+```text
+https://defendtheparks.mp3li.online
+```
+
+The deployed web app is early-access protected. The access code is intentionally not documented in the repo.
 
 ## Static Checks
 
@@ -34,13 +42,17 @@ The app expects National Park Service and Native Land API variables in `learning
 
 If keys are missing or invalid, API areas may show error or empty-state messages instead of records.
 
+Cloudflare Pages also needs deployment variables/secrets configured outside the repo. Do not commit real values.
+
 ## Home Screen
 
 Check:
 
 - fixed app title is visible at the top;
 - mobile bottom tab navigation is visible;
-- web header navigation is visible and includes Homepage, Search by State, Where Are We?, Journey Mode, and My Saved National Parks & Sites;
+- desktop web header navigation is visible and includes Homepage, Search by State, Where Are We?, Journey Mode, and My Saved National Parks & Sites;
+- mobile-width web keeps the mobile-style upper header and bottom tab navigation;
+- desktop web and mobile web nav icons show as real icons, not missing-font boxes;
 - Jump To compass button opens the page menu;
 - mobile Welcome card preview expands and collapses;
 - web Welcome content is expanded and non-collapsible;
@@ -52,6 +64,11 @@ Check:
 - National Parks Picture Gallery entries use the same flat section styling, without solid white nested cards;
 - mobile longer sections preview content and expand;
 - web sections are expanded and non-collapsible except National Parks Picture Gallery.
+
+Web-specific check:
+
+- desktop web sections are readable-width instead of full-bleed, leaving the background visible;
+- mobile web uses mobile image/gallery sizing instead of desktop two-column gallery sizing.
 
 ## Search by State Screen
 
@@ -107,7 +124,7 @@ Check:
 
 Check:
 
-- Journey Mode tab opens directly from the bottom navigation;
+- Journey Mode opens directly from the mobile bottom navigation or desktop web header navigation;
 - intro card uses the same header styling as other screens;
 - **Begin Journey Mode** starts the Journey Mode permission/location flow;
 - active Journey Mode changes the button to **Stop Journey Mode**;
@@ -119,13 +136,19 @@ Check:
 - notification behavior is not imported until Journey Mode notification permissions or scheduling are needed;
 - Last update displays `Journey Mode not yet enabled` before Journey Mode starts;
 - Last update changes after Journey Mode starts;
-- current location result sections display after coordinates are loaded.
+- current location result sections display after coordinates are loaded;
 - web Journey Mode checks every 5 minutes only while the tab remains open.
 
 Expo Go note:
 
 - visible Journey Mode UI and foreground coordinate behavior can be tested in Expo;
-- full background-location and notification behavior may require a native development build for instructor runtime testing.
+- full background-location and notification behavior is implemented in source but may not fully run inside Expo Go on iPhone.
+
+Web note:
+
+- desktop web and mobile web can show Journey Mode foreground results while the browser tab is open;
+- desktop web and mobile web are not equivalent to native background location after the app is closed or backgrounded;
+- the web build uses a 5-minute tab-open polling path to provide an accessible demonstration of the travel-aware workflow.
 
 ## Navigation
 
@@ -136,6 +159,8 @@ Check:
 - **Return to Homepage** returns directly to Home;
 - mobile bottom nav selected icons/text use the ivory app-title color;
 - web header nav selected icons/text use the ivory app-title color;
+- desktop web uses header navigation instead of the bottom tab bar;
+- mobile-width web uses bottom tabs to preserve the mobile app testing experience;
 - state/profile pages visually keep Search selected in navigation.
 
 ## Saved Parks
@@ -160,7 +185,7 @@ Implementation location:
 
 Runtime behavior can depend on the preview environment.
 
-## Background Behavior and Development Build Caveat
+## Background Behavior and Platform Caveat
 
 Journey Mode background-location behavior is implemented in source code, but full runtime verification may depend on:
 
@@ -175,5 +200,18 @@ For source review, inspect:
 - `learning-react-native-app/services/journey-mode.ts`
 - `learning-react-native-app/tasks/journey-mode-task.ts`
 - `learning-react-native-app/components/journey-mode-panel.tsx`
+- `learning-react-native-app/app/(tabs)/journey-mode.tsx`
 
-For final grading, a development build can be provided if the instructor needs to test Journey Mode's native background-location and notification behavior outside Expo Go.
+Because the available physical testing devices are in the Apple ecosystem and Apple Developer account access creates a financial barrier, this submission documents the native implementation source and provides a Cloudflare Pages deployment for accessible browser-based testing. The web deployment demonstrates foreground GPS lookup, API display, Journey Mode start/stop behavior, current-location results, and tab-open polling while keeping native background-location source available for review.
+
+## Deployed Web Behavior
+
+The deployed web app uses:
+
+- Cloudflare Pages connected to GitHub `main`;
+- Expo web export from `learning-react-native-app`;
+- Cloudflare Pages Function `functions/api/nps/[[path]].js` for NPS data loading;
+- Cloudflare Pages Function `functions/api/access-code.js` for early-access validation;
+- Cloudflare environment variables/secrets for private values;
+- web-specific backgrounds and layout rules;
+- drawn web icons in `components/ui/icon-symbol.tsx` so navigation icons do not depend on browser icon fonts.

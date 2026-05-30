@@ -18,6 +18,7 @@
   <img alt="Framework" src="https://img.shields.io/badge/Framework-Expo_React_Native-aa5215?style=flat-square&labelColor=04040c" />
   <img alt="Language" src="https://img.shields.io/badge/Language-TypeScript-66310c?style=flat-square&labelColor=04040c" />
   <img alt="Persistence" src="https://img.shields.io/badge/Persistence-Saved_Parks-151e08?style=flat-square&labelColor=04040c" />
+  <img alt="Deployment" src="https://img.shields.io/badge/Deployed-Cloudflare_Pages-aa5215?style=flat-square&labelColor=04040c" />
   <img alt="Access" src="https://img.shields.io/badge/Access-Early_Access_Only-aa5215?style=flat-square&labelColor=04040c" />
   <img alt="Status" src="https://img.shields.io/badge/Status-In_Active_Development-66310c?style=flat-square&labelColor=04040c" />
   <img alt="License" src="https://img.shields.io/badge/License-Source_Available_Review_Only-151e08?style=flat-square&labelColor=04040c" />
@@ -36,6 +37,7 @@
 
 - [About the Project](#about-the-project)
 - [What the App Provides](#what-the-app-provides)
+- [Platform Implementation and User Experience](#platform-implementation-and-user-experience)
 - [How to Use Defend the Parks](#how-to-use-defend-the-parks)
 - [Feature: Where Are We? Mode](#feature-where-are-we-mode)
 - [Feature: Journey Mode](#feature-journey-mode)
@@ -47,7 +49,7 @@
 - [UI, Styling, and Asset Credits](#ui-styling-and-asset-credits)
 - [Setup, API Keys, and Local Development](#setup-api-keys-and-local-development)
 - [Testing, Grading, and Platform Notes](#testing-grading-and-platform-notes)
-- [Future Deployment Direction](#future-deployment-direction)
+- [Deployment and Early Access](#deployment-and-early-access)
 - [Final Project Requirement Map](#final-project-requirement-map)
 - [Documentation Map](#documentation-map)
 - [License](#license)
@@ -92,6 +94,59 @@ The app intentionally avoids presenting Native Land data as fixed legal borders.
 - **Journey Mode:** travel-aware GPS flow with Begin/Stop Journey Mode action, in-app compass, How Journey Mode Works explanation, current location results, persisted last-update state, web tab-open polling, and background-task/notification source.
 - **Saved Parks:** saved count, saved park list, open actions, remove actions, and persisted saved state.
 - **Broadcast/system-event coverage:** AppState listener, deep-link handling, and Journey Mode context-change state for the coursework broadcast/system-event requirement.
+
+## Platform Implementation and User Experience
+
+Defend the Parks is implemented as an Expo React Native app first, with a deployed Cloudflare Pages web build added so the project can be reviewed from a browser while preserving the mobile app experience.
+
+### Expo and Future Native App-Store Path
+
+The Expo/iPhone workflow was used to keep the mobile app experience intact for final-project testing:
+
+- fixed app title and Jump To compass stay available above scrollable content;
+- mobile bottom navigation remains available on phone-sized screens;
+- Where Are We? uses foreground location permission, coordinate lookup, Native Land API records, and heading data when the runtime provides it;
+- Journey Mode source includes the native background-task and notification path through `expo-task-manager`, `expo-location`, and `expo-notifications`;
+- source locations for the native Journey Mode path are `learning-react-native-app/tasks/journey-mode-task.ts`, `learning-react-native-app/services/journey-mode.ts`, `learning-react-native-app/app/(tabs)/journey-mode.tsx`, and `learning-react-native-app/components/journey-mode-panel.tsx`;
+- Expo Go can test the visible Journey Mode flow and foreground coordinate behavior, but may not fully run native background location and notification behavior.
+
+The native app-store-style Journey Mode path is implemented in source. It was not distributed as an installable iOS build for grading because my available testing devices are in the Apple ecosystem and a paid Apple Developer account is a financial barrier. That is why the project also includes the Cloudflare Pages deployment as an accessible way to demonstrate the GPS/API/Journey Mode workflow without requiring an app-store build.
+
+### Desktop Web
+
+The desktop web build was adjusted so it feels intentional instead of like a stretched phone screen:
+
+- desktop web hides the bottom tab bar and uses header navigation with text and icons;
+- content uses readable-width constraints so the background image remains visible;
+- sections are expanded by default so desktop users do not have to open every long content block;
+- the National Parks Picture Gallery remains the only expandable/paged section because rendering every image at once would be noisy and slower;
+- web-specific landscape backgrounds are used for Home/Search/State/Park/Where/Saved and Journey Mode;
+- NPS requests use a Cloudflare Pages Function proxy so park data loads reliably from deployed browsers;
+- early access is validated through a Cloudflare Pages Function and Cloudflare secret, not a hardcoded code in the repo;
+- web navigation icons render as inline SVG paths instead of browser icon-font glyphs, preventing missing-font boxes.
+
+### Mobile Web
+
+Mobile web keeps the mobile app feel while still running from the deployed site:
+
+- phone-width browsers use the mobile-style upper header and bottom tab navigation;
+- mobile web keeps mobile image sizing for the gallery and state-result images instead of desktop two-column sizing;
+- access-code modal sizing and text colors are adjusted for mobile browsers;
+- mobile web uses the same early-access gate and Cloudflare-backed NPS data route as desktop web;
+- Where Are We? and Journey Mode can use browser geolocation with permission;
+- Journey Mode on web checks for updated coordinates every 5 minutes only while the browser tab remains open.
+
+### Journey Mode Runtime Difference
+
+Journey Mode intentionally has different runtime behavior depending on where it runs:
+
+| Runtime | What can be tested |
+| --- | --- |
+| Expo Go on iPhone | visible Journey Mode UI, Begin/Stop flow, foreground coordinates, current Native Land result rendering, saved state, and last-update display |
+| Future native app-store build | source-supported background location task, changed-context comparison, and local notification scheduling when the operating system permits it |
+| Desktop web/mobile web | foreground browser geolocation, Journey Mode start/stop flow, current-location results, and 5-minute tab-open polling |
+
+The web build is an alternative review path for the assignment requirements, not a claim that browser tabs are equivalent to native background location after an app is closed or backgrounded.
 
 ## How to Use Defend the Parks
 
@@ -227,10 +282,10 @@ The source code includes:
 - local notification source with `expo-notifications`;
 - comparison logic for changed Native Land context;
 - persisted last-update state;
-- web polling every 5 minutes while the tab is open;
+- desktop/mobile web polling every 5 minutes while the browser tab is open;
 - shared result rendering with Where Are We?.
 
-Expo Go can show and test the foreground portions of this flow, but full background location and notification behavior is platform/build dependent. For final grading, this project documents the implemented source and can be provided as a development build so the instructor can test the native behavior that Expo Go may not fully run on iPhone.
+Expo Go can show and test the foreground portions of this flow, but full background location and notification behavior is platform/build dependent. Because my available testing devices are in the Apple ecosystem and a paid Apple Developer account is a financial barrier, the final submission documents the native implementation locations and also deploys the app on Cloudflare Pages as an accessible web build. The web build demonstrates the GPS/API workflow and Journey Mode result updates while the tab remains open, but it does not claim to replace native app-store background location after the app is closed or backgrounded.
 
 ## Feature: In-App Compass
 
@@ -255,6 +310,7 @@ The compass does not need NPS API or Native Land API network data to calculate h
 | Notifications | `expo-notifications` local notification source |
 | Local persistence | AsyncStorage and app context state |
 | System events | React Native `AppState`, deep-link handling, and Journey Mode context-change state |
+| Web deployment | Cloudflare Pages static export plus Pages Functions for NPS proxying and early-access validation |
 
 ## Architecture Flow
 
@@ -283,9 +339,9 @@ Journey Mode
   -> user taps Begin Journey Mode
   -> app requests needed location/notification permissions
   -> app stores the current Native Land context as a baseline
-  -> background task source checks future coordinates
-  -> app compares returned context
-  -> app schedules a local notification when context changes
+  -> native source can register a background task and schedule local notifications
+  -> web build checks every 5 minutes while the tab remains open
+  -> app compares returned context and refreshes current-location results
 ```
 
 ## Data Sources and API Strategy
@@ -297,7 +353,9 @@ Defend the Parks uses two primary external data sources:
 | National Park Service API | Park and NPS-location records, names, designations, descriptions, images, image credits, activities, topics, weather notes, operating hours, entrance fees, passes, contacts, addresses, directions, and official URLs |
 | Native Land API | Coordinate-based and place-based Indigenous language, territory, treaty, source, and available placename records |
 
-The app currently calls these APIs from the Expo app for coursework/testing. For any public web deployment, client-side API keys should be treated as visible because static web bundles cannot keep secrets. A future backend would move protected API calls server-side and would be useful for caching responses, normalizing API data, and protecting rate limits.
+The Expo/mobile source calls the service layer directly for local coursework testing. The deployed Cloudflare Pages web app uses a same-origin Pages Function for National Park Service requests so the browser does not call NPS directly from the static bundle. Native Land coordinate lookups remain part of the client-side educational workflow.
+
+Secrets and access control are intentionally not documented with real values. The web early-access prompt validates against a Cloudflare Pages Function and a Cloudflare environment secret, not a hardcoded code in the repo.
 
 ## Native Land Context Approach
 
@@ -367,13 +425,29 @@ npx tsc --noEmit
 
 Testing so far has been focused on iPhone through the Expo workflow. That verifies the app shell, navigation, styling, NPS API display, Native Land API display, foreground coordinate lookup, heading/compass behavior when available, Saved Parks, Jump To, and manual Where Are We? results.
 
-The Journey Mode source satisfies the implementation side of the background-location/notification requirement, but Expo Go can limit native background location and notification behavior on iPhone. For grading, the source is documented, and a development build can be provided so the instructor can test the native Journey Mode behavior outside Expo Go.
+The Journey Mode source satisfies the implementation side of the background-location/notification requirement, but Expo Go can limit native background location and notification behavior on iPhone. This limitation is tied to platform/runtime constraints and, for this project, the financial barrier of Apple Developer account access for native iOS build distribution. For grading, the implementation is documented directly in source, and the Cloudflare Pages deployment provides an alternate accessible way to test the app's GPS permission flow, external API display, Journey Mode start/stop flow, current-location result rendering, and tab-open polling behavior.
 
-## Future Deployment Direction
+## Deployment and Early Access
 
-The current app does not have a backend. A web version can be built from Expo and hosted as a static app on Cloudflare Pages. In that setup, the browser client can call NPS and Native Land directly, but any key included in the static client should be considered public.
+The app is deployed on Cloudflare Pages:
 
-Future iterations may add a backend running on a local iMac or another server. That backend would not be required for the current mobile app to function, but it would be the better architecture for protected API calls, response caching, request normalization, analytics, and future public web deployment polish.
+```text
+https://defendtheparks.mp3li.online
+```
+
+Deployment uses:
+
+- GitHub-connected Cloudflare Pages deployment from `main`;
+- Expo web export through `npm run build:web`;
+- `learning-react-native-app/dist` as the build output;
+- Cloudflare Pages Functions for selected server-side behavior;
+- a same-origin NPS proxy at `functions/api/nps/[[path]].js`;
+- server-side early-access validation at `functions/api/access-code.js`;
+- Cloudflare environment variables/secrets for required private values.
+
+The public web app is early-access only. This README intentionally documents that an early-access code exists, but does not publish the code.
+
+Future iterations may add a more complete backend running on a local iMac or hosted server. That backend would not be required for the current mobile app to function, but it would be the better architecture for broader API-key protection, response caching, request normalization, analytics, and public deployment polish.
 
 Where Are We? and the foreground part of Journey Mode can work in a web preview when the browser grants geolocation permission. What is different is native background behavior: a browser tab can show current Journey Mode results while it is open, but it should not be described as equivalent to native mobile background tracking and local notifications after the app is backgrounded or closed.
 

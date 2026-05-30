@@ -18,6 +18,36 @@ Main systems:
 The app keeps API calls in services so screens can focus on state, permissions, and rendering.
 Shared visual behavior lives in reusable components so Home, Search, Park Profile, Where Are We?, and Journey Mode use the same section styling while still allowing web-specific layout behavior.
 
+## Platform Implementation and UX Preservation
+
+The project supports three practical review contexts: Expo/iPhone testing, desktop web, and mobile web. The goal was to keep the user experience consistent while handling the limits of each runtime.
+
+Expo/iPhone testing preserves the future native app-store path:
+
+- mobile header and bottom navigation stay fixed like the app experience;
+- foreground location, coordinate lookup, Native Land API result rendering, saved state, and Jump To navigation are testable in Expo;
+- Journey Mode UI, Begin/Stop behavior, current-location result rendering, and last-update state are testable in Expo;
+- native background task and local notification source remain implemented for future native runtimes in `tasks/journey-mode-task.ts` and `services/journey-mode.ts`;
+- Expo Go can warn or limit full native background-location and notification behavior, so the implementation is documented in source instead of overstating Expo Go runtime coverage.
+
+Desktop web was adjusted so the deployed app does not feel like a stretched mobile build:
+
+- desktop web uses header navigation and hides the bottom tab bar;
+- readable content width keeps the background visible and improves scanning;
+- page sections are expanded by default because desktop users have more screen space;
+- the image gallery remains expandable and paged to prevent huge image lists from loading all at once;
+- landscape web backgrounds are used instead of mobile-shaped backgrounds;
+- web icons are inline SVG paths, not browser icon fonts, so navigation does not show missing-font boxes.
+
+Mobile web was adjusted to preserve the phone app experience:
+
+- mobile-width web keeps the mobile-style upper header and bottom tab bar;
+- mobile image sizing is used for gallery and state-result images;
+- access-code modal spacing and text colors were adjusted for mobile browser viewports;
+- page scrolling and background behavior were tuned so content scrolls naturally instead of requiring the pointer to be over one narrow panel.
+
+Cloudflare Pages was added as an alternate grading/review path because a paid Apple Developer account is a financial barrier while all available physical testing devices are in the Apple ecosystem. The deployed web app demonstrates the GPS/API/Journey Mode workflow accessibly in a browser, while the native Journey Mode source remains available for review.
+
 ## Location Flow
 
 The **Where Are We?** tab uses `expo-location`.
@@ -112,13 +142,20 @@ When turned on:
 - a local notification is scheduled if returned context changes.
 - the Journey Mode screen displays current location results using the same general result sections as Where Are We?.
 - an updating loading state appears while Journey Mode is getting current or refreshed coordinate context.
-- web builds check for updated Journey Mode coordinates every 5 minutes only while the tab remains open.
+- desktop web and mobile web builds check for updated Journey Mode coordinates every 5 minutes only while the tab remains open.
 
 Implementation locations:
 
 - `learning-react-native-app/components/journey-mode-panel.tsx`
 - `learning-react-native-app/services/journey-mode.ts`
 - `learning-react-native-app/tasks/journey-mode-task.ts`
+- `learning-react-native-app/app/(tabs)/journey-mode.tsx`
+
+Runtime differences:
+
+- **Expo/iPhone testing:** foreground Journey Mode UI, permission prompts, coordinate lookup, current-location result rendering, saved enabled state, and visible last-update behavior can be tested in the Expo workflow.
+- **Native app-store-style builds:** the source includes the background task and local notification path intended for native runtimes that permit background location and notifications.
+- **Desktop web/mobile web:** Journey Mode uses browser geolocation while the tab is open and repeats checks every 5 minutes. Browser tabs should not be represented as equivalent to native background location after the app is closed or backgrounded.
 
 ## Notifications
 
@@ -127,7 +164,7 @@ Notifications use `expo-notifications`.
 The app schedules local notifications only for Journey Mode context changes. Notification permission is requested only when the user turns Journey Mode on.
 The notification module is lazy-loaded by the Journey Mode service so normal app startup does not import notification behavior before the user needs it.
 
-Expo Go may warn that full notification support is limited. The source implementation remains present for review and for native-build runtimes.
+Expo Go may warn that full notification support is limited. The source implementation remains present for review and for future native app-store runtimes.
 
 ## Broadcast, System Events, and Deep Links
 
@@ -149,6 +186,9 @@ The app uses:
 - Back strip with history-based Back and direct Return to Homepage actions;
 - mobile bottom tab navigation;
 - web header navigation with icons and text;
+- desktop web header navigation that keeps page links in the top header instead of a bottom tab bar;
+- mobile web navigation that keeps the mobile upper header and bottom tab bar so mobile browser testing matches the Expo mobile experience closely;
+- web icons drawn in `components/ui/icon-symbol.tsx` without relying on browser icon-font rendering, preventing missing-font boxes on desktop web and mobile web;
 - Jump To compass menu;
 - glassy background surfaces;
 - flat glass section surfaces without nested solid white subcards;
@@ -160,6 +200,14 @@ The app uses:
 - accessible buttons;
 - responsive spacing helpers;
 - custom font loading through `expo-font`.
+
+The web layout intentionally has platform-specific refinements:
+
+- desktop web uses wider readable content constraints so the background remains visible;
+- mobile web uses mobile-sized image/gallery behavior instead of desktop two-column gallery cards;
+- desktop web uses web-specific landscape background images;
+- mobile native keeps the original mobile background set;
+- web sections are expanded by default to reduce unnecessary tapping on desktop, while the image gallery remains the only expandable/paged section.
 
 The Search by State list uses memoized rows and FlatList render-window settings to keep state-list updates responsive.
 
@@ -199,16 +247,34 @@ Testing has been focused on iPhone through the Expo workflow. The standard Expo 
 Full background-location runtime verification can depend on:
 
 - iOS or Android permission choices;
-- Expo Go versus native build runtime;
+- Expo Go versus native app-store-style runtime;
 - operating system background restrictions;
 - notification permission state;
 - whether the device allows background updates during the test.
 
-For grading, the source implementation locations are documented in `docs/FINAL_PROJECT_REQUIREMENTS.md`. A development build can be provided when the instructor needs runtime verification of Journey Mode background location and notification behavior outside Expo Go.
+Because my available testing devices are in the Apple ecosystem and a paid Apple Developer account is a financial barrier, this submission does not rely on distributing an installable iOS build for grading. Instead, it documents the native implementation points in source and provides a Cloudflare Pages deployment so the instructor can test the app through a browser while reviewing the native Journey Mode source separately.
 
-## Future Web Deployment
+## Cloudflare Pages Deployment
 
-The current app does not have a backend. A future web version can be built from Expo and hosted as a static app on Cloudflare Pages, with the client calling NPS and Native Land directly.
+The app is deployed on Cloudflare Pages at:
+
+```text
+https://defendtheparks.mp3li.online
+```
+
+The deployment is connected to the GitHub `main` branch and builds the Expo web export:
+
+```text
+Build command: cd learning-react-native-app && npm ci && npm run build:web
+Build output directory: learning-react-native-app/dist
+```
+
+Cloudflare Pages Functions support selected web runtime behavior:
+
+- `functions/api/nps/[[path]].js` proxies NPS requests through the same origin so park data loads reliably in deployed browsers.
+- `functions/api/access-code.js` validates early access with a Cloudflare secret instead of a hardcoded public code.
+
+The repo documents the existence of early access but does not publish the access code. Required API/access values should stay in local ignored environment files or Cloudflare environment variables/secrets.
 
 A backend is not required for the current app to function, but a later backend running on a local iMac or hosted server would be useful for:
 

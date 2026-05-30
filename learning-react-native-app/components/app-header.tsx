@@ -256,10 +256,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Palette.campfire,
     backgroundColor: Palette.night,
-    shadowColor: Palette.campfire,
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 6px ${Palette.campfire}`,
+      },
+      default: {
+        shadowColor: Palette.campfire,
+        shadowOpacity: 0.35,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 0 },
+      },
+    }),
   },
   compassCrossVertical: {
     position: 'absolute',

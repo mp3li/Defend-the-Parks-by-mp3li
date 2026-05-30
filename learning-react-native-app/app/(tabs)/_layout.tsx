@@ -26,10 +26,17 @@ export default function TabLayout() {
           display: showMobileTabBar ? 'flex' : 'none',
           backgroundColor: SurfaceColors.navLight,
           borderTopColor: Palette.summitBlush,
-          shadowColor: Palette.campfire,
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: -2 },
+          ...Platform.select({
+            web: {
+              boxShadow: `0 -2px 8px ${Palette.campfire}4d`,
+            },
+            default: {
+              shadowColor: Palette.campfire,
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: -2 },
+            },
+          }),
         },
         headerShown: false,
         sceneStyle: {
