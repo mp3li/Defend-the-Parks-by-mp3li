@@ -11,22 +11,16 @@
 </p>
 
 <p align="center">
-  <img alt="National Park Data" src="https://img.shields.io/badge/National_Park_Data-NPS_API-aa5215?style=for-the-badge&labelColor=04040c" />
-  <img alt="Indigenous Context Data" src="https://img.shields.io/badge/Indigenous_Context_Data-Native_Land_API-66310c?style=for-the-badge&labelColor=04040c" />
-  <img alt="GPS Feature Where Are We" src="https://img.shields.io/badge/GPS_Feature-Where_Are_We%3F-151e08?style=for-the-badge&labelColor=04040c" />
-  <img alt="GPS Feature Journey Mode" src="https://img.shields.io/badge/GPS_Feature-Journey_Mode-0b1406?style=for-the-badge&labelColor=04040c" />
-</p>
-
-<p align="center">
-  <img alt="Framework" src="https://img.shields.io/badge/Framework-Expo_React_Native-aa5215?style=for-the-badge&labelColor=04040c" />
-  <img alt="Language" src="https://img.shields.io/badge/Language-TypeScript-66310c?style=for-the-badge&labelColor=04040c" />
-  <img alt="Persistence" src="https://img.shields.io/badge/Persistence-Saved_Parks-151e08?style=for-the-badge&labelColor=04040c" />
-</p>
-
-<p align="center">
-  <img alt="Access" src="https://img.shields.io/badge/Access-Early_Access_Only-aa5215?style=for-the-badge&labelColor=04040c" />
-  <img alt="Status" src="https://img.shields.io/badge/Status-In_Active_Development-66310c?style=for-the-badge&labelColor=04040c" />
-  <img alt="License" src="https://img.shields.io/badge/License-Source_Available_Review_Only-151e08?style=for-the-badge&labelColor=04040c" />
+  <img alt="National Park Data" src="https://img.shields.io/badge/National_Park_Data-NPS_API-aa5215?style=flat-square&labelColor=04040c" />
+  <img alt="Indigenous Context Data" src="https://img.shields.io/badge/Indigenous_Context_Data-Native_Land_API-66310c?style=flat-square&labelColor=04040c" />
+  <img alt="GPS Feature Where Are We" src="https://img.shields.io/badge/GPS_Feature-Where_Are_We%3F-151e08?style=flat-square&labelColor=04040c" />
+  <img alt="GPS Feature Journey Mode" src="https://img.shields.io/badge/GPS_Feature-Journey_Mode-0b1406?style=flat-square&labelColor=04040c" />
+  <img alt="Framework" src="https://img.shields.io/badge/Framework-Expo_React_Native-aa5215?style=flat-square&labelColor=04040c" />
+  <img alt="Language" src="https://img.shields.io/badge/Language-TypeScript-66310c?style=flat-square&labelColor=04040c" />
+  <img alt="Persistence" src="https://img.shields.io/badge/Persistence-Saved_Parks-151e08?style=flat-square&labelColor=04040c" />
+  <img alt="Access" src="https://img.shields.io/badge/Access-Early_Access_Only-aa5215?style=flat-square&labelColor=04040c" />
+  <img alt="Status" src="https://img.shields.io/badge/Status-In_Active_Development-66310c?style=flat-square&labelColor=04040c" />
+  <img alt="License" src="https://img.shields.io/badge/License-Source_Available_Review_Only-151e08?style=flat-square&labelColor=04040c" />
 </p>
 
 <p align="center">
