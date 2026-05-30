@@ -12,12 +12,13 @@ What is implemented:
 - Reads the user's current latitude and longitude.
 - Displays the coordinates in the interface.
 - Uses those coordinates to request Native Land API records.
-- Starts heading updates when location permission is available.
+- Starts heading updates when location permission is available, with a web tilting/orientation fallback when browser/device support exists.
 - Displays an in-app compass when heading data is available.
 - Displays the in-app compass on Where Are We? and Journey Mode.
-- Provides Journey Mode as an opt-in travel feature started by the **Begin Journey Mode** button.
+- Provides Journey Mode as an opt-in travel feature started by the **Begin Journey Mode** button and stopped with **Stop Journey Mode**.
 - Displays Journey Mode current-location results with the same result structure used by Where Are We?.
 - Stores Journey Mode enabled state, last check time, baseline context, and last context-change event with AsyncStorage.
+- Updates Journey Mode last-check time during foreground Journey Mode checks.
 - Registers a background location task in source code with `expo-task-manager`.
 - Compares new returned territory context to the saved baseline when background updates are available.
 - Schedules a local notification when Journey Mode detects changed returned context.
@@ -108,14 +109,15 @@ Implementation locations:
 What is implemented:
 
 - Fixed app title on every screen.
-- Bottom tab navigation.
+- Mobile bottom tab navigation.
+- Web header navigation.
 - Jump To compass menu for long screens.
 - Accessible buttons.
-- Collapsible preview sections that start partially visible.
-- Section arrows only where expansion is available.
+- Mobile collapsible preview sections that start partially visible.
+- Web sections expanded by default, with National Parks Picture Gallery as the only expandable/collapsible web section.
 - Spinning compass loading animation while checking coordinates.
 - Where Are We-style Journey Mode result loading and current context surfaces.
-- In-app compass on Where Are We?.
+- In-app compass on Where Are We? and Journey Mode.
 - Full-size image modal for gallery images.
 - Back strip with Back and Return to Homepage actions.
 - Glassy/dimmed background image system.
@@ -138,7 +140,8 @@ Use this checklist for grading:
 
 - Run `npm install` inside `learning-react-native-app/`.
 - Run `npx expo start`.
-- Confirm Home loads with the fixed app title and bottom navigation.
+- Confirm Home loads with the fixed app title.
+- Confirm mobile shows bottom navigation and web shows header navigation.
 - Confirm the Jump To compass menu opens.
 - Confirm Featured Park of the Day loads from the NPS API.
 - Confirm the save/remove park button persists saved state.
@@ -156,11 +159,15 @@ Use this checklist for grading:
 - Confirm Placename Records, Languages, Territories, Treaties, Native Land Public Resources and Map Tools, Nearby Sovereignties, and Sources match the current shared section style.
 - Confirm languages, territories, treaties, source links, and resource links display when returned.
 - Confirm Nearby Sovereignties displays approximate nearby records when available.
-- Confirm the in-app compass copy says `Get your Coordinates to use the in-app compass.` before heading data is available.
+- Confirm the in-app compass copy says `Get your Coordinates to use the in-app compass.` before coordinates are loaded.
+- Confirm web shows a clear compass tilting limitation message only after coordinates are active and tilting is unavailable.
 - Open Journey Mode.
 - Tap **Begin Journey Mode**.
 - Confirm the Journey Mode in-app compass appears above How Journey Mode Works.
 - Confirm Journey Mode state persists after navigating away and returning.
+- Confirm Journey Mode button changes from **Begin Journey Mode** to **Stop Journey Mode** while active.
+- Confirm stopping Journey Mode returns the button to **Begin Journey Mode** and shows `Journey Mode Ended. Begin Again?`.
+- Confirm Last update changes after Journey Mode starts.
 - Confirm Journey Mode displays current location results with the same general structure as Where Are We? after coordinates load.
 - Review `tasks/journey-mode-task.ts` for background task source.
 - Review `app/_layout.tsx` for deep-link handling.

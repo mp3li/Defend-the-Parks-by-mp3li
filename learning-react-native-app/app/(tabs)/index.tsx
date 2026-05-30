@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PARK_DETAIL_SECTIONS, ParkDetailContent } from '@/components/park/park-detail-content';
 import { AccessibleButton } from '@/components/accessible-button';
-import { ResponsiveContainer } from '@/components/responsive-layout';
+import { ResponsiveContainer, webReadableContentStyle } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -23,6 +23,7 @@ import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { fetchIndigenousContextByCoordinates } from '@/services/native-land-api';
 import { fetchNationalParksGalleryImages, fetchParkOfTheDay } from '@/services/nps-api';
 import type { IndigenousContextData, NpsParkImage, ParkOfTheDay } from '@/types/parks';
+import { getSectionNativeId, jumpToWebSection, PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
 
 const WEB_ACCESS_CODE = 'REDACTED_ACCESS_CODE';
 const WEB_ACCESS_STORAGE_KEY = 'defendTheParksWebAccessGranted';
@@ -74,12 +75,13 @@ export default function HomeScreen() {
   const [featuredIndigenousContext, setFeaturedIndigenousContext] =
     useState<IndigenousContextData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [aboutExpanded, setAboutExpanded] = useState(Platform.OS === 'web');
   const [galleryImages, setGalleryImages] = useState<NpsParkImage[]>([]);
   const [webAccessChecked, setWebAccessChecked] = useState(Platform.OS !== 'web');
   const [webAccessGranted, setWebAccessGranted] = useState(Platform.OS !== 'web');
   const [accessCodeInput, setAccessCodeInput] = useState('');
   const [accessError, setAccessError] = useState('');
+  const aboutCollapsible = Platform.OS !== 'web';
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') {
@@ -131,6 +133,9 @@ export default function HomeScreen() {
       { id: 'quick-actions', label: 'Quick Actions' },
     ]);
     setJumpHandler((id) => {
+      if (jumpToWebSection(id)) {
+        return;
+      }
       scrollRef.current?.scrollTo({ y: sectionOffsets.current[id] ?? 0, animated: true });
     });
 
@@ -220,9 +225,11 @@ export default function HomeScreen() {
         </Modal>
         <ResponsiveContainer style={{ gap: padding, paddingTop: 0 }}>
         <ScrollView
+          nativeID={PAGE_SCROLL_NATIVE_ID}
           ref={scrollRef}
-          contentContainerStyle={{ gap: padding, paddingTop: padding, paddingBottom: 28 }}>
+          contentContainerStyle={[webReadableContentStyle, { gap: padding, paddingTop: padding, paddingBottom: 28 }]}>
           <ThemedView
+            nativeID={getSectionNativeId('about')}
             style={[styles.card, glassSurfaceStyle, { gap }]}
             onLayout={(event) => {
               sectionOffsets.current.about = event.nativeEvent.layout.y;
@@ -230,22 +237,29 @@ export default function HomeScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={aboutExpanded ? 'Collapse about the app' : 'Expand about the app'}
+              disabled={!aboutCollapsible}
               style={styles.expandHeader}
-              onPress={() => setAboutExpanded((current) => !current)}>
+              onPress={() => {
+                if (aboutCollapsible) {
+                  setAboutExpanded((current) => !current);
+                }
+              }}>
               <ThemedText type="subtitle" style={styles.expandTitle} accessibilityRole="header">
                 Welcome to Defend the Parks by mp3li
               </ThemedText>
-              <View style={styles.chevronBadge}>
-                <IconSymbol
-                  name={aboutExpanded ? 'chevron.up' : 'chevron.down'}
-                  size={24}
-                  color={Colors.dark.text}
-                />
-              </View>
+              {aboutCollapsible ? (
+                <View style={styles.chevronBadge}>
+                  <IconSymbol
+                    name={aboutExpanded ? 'chevron.up' : 'chevron.down'}
+                    size={24}
+                    color={Colors.dark.text}
+                  />
+                </View>
+              ) : null}
             </Pressable>
             <View style={!aboutExpanded && styles.aboutPreview}>
               <ThemedText>
-                This app helps you explore National Parks while also learning about the deeper
+                This app is for exploring National Parks while also learning about the deeper
                 history of the land they exist on. Many of the places we now call parks have been
                 home to Indigenous nations for thousands of years.
                 {'\n\n'}
@@ -269,6 +283,7 @@ export default function HomeScreen() {
           </ThemedView>
 
           <View
+            nativeID={getSectionNativeId('gallery')}
             onLayout={(event) => {
               sectionOffsets.current.gallery = event.nativeEvent.layout.y;
             }}>
@@ -276,6 +291,7 @@ export default function HomeScreen() {
           </View>
 
           <View
+            nativeID={getSectionNativeId('featured')}
             onLayout={(event) => {
               sectionOffsets.current.featured = event.nativeEvent.layout.y;
             }}>
@@ -293,7 +309,7 @@ export default function HomeScreen() {
                   {parkOfTheDay.park.images[0]?.url ? (
                     <Image
                       source={{ uri: parkOfTheDay.park.images[0].url }}
-                      style={styles.featuredImage}
+                      style={[styles.featuredImage, Platform.OS === 'web' && styles.webFeaturedImage]}
                       contentFit="cover"
                       accessibilityLabel={parkOfTheDay.park.images[0].altText || parkOfTheDay.park.fullName}
                     />
@@ -343,6 +359,7 @@ export default function HomeScreen() {
           </View>
 
           <ThemedView
+            nativeID={getSectionNativeId('quick-actions')}
             style={[styles.card, glassSurfaceStyle, { gap }]}
             onLayout={(event) => {
               sectionOffsets.current['quick-actions'] = event.nativeEvent.layout.y;
@@ -413,6 +430,9 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 10,
     backgroundColor: Colors.light.background,
+  },
+  webFeaturedImage: {
+    height: 320,
   },
   featuredDate: {
     fontSize: 12,

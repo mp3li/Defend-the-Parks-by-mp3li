@@ -6,7 +6,7 @@ import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NationalParksPictureGallery } from '@/components/park/national-parks-picture-gallery';
-import { ResponsiveContainer } from '@/components/responsive-layout';
+import { ResponsiveContainer, webReadableContentStyle } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -18,6 +18,7 @@ import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { fetchNationalParksGalleryImages } from '@/services/nps-api';
 import type { NpsParkImage } from '@/types/parks';
+import { PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
 
 const STATE_ROW_HEIGHT = 74;
 
@@ -125,9 +126,10 @@ export default function StatesScreen() {
 
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
-      <ScreenBackground>
+      <ScreenBackground variant="where">
         <ResponsiveContainer style={{ gap: padding, paddingTop: 0 }}>
         <FlatList
+          nativeID={PAGE_SCROLL_NATIVE_ID}
           ref={listRef}
           data={filteredStates}
           keyExtractor={(item) => item.code}
@@ -141,7 +143,7 @@ export default function StatesScreen() {
             offset: (STATE_ROW_HEIGHT + gap) * index,
             index,
           })}
-          contentContainerStyle={{ gap, paddingTop: padding, paddingBottom: 28 }}
+          contentContainerStyle={[webReadableContentStyle, { gap, paddingTop: padding, paddingBottom: 28 }]}
           ListHeaderComponent={
             <View style={{ gap }}>
               <ThemedView

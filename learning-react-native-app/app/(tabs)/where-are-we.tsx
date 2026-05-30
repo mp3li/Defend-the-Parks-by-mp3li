@@ -5,6 +5,7 @@ import {
   Animated,
   AppState,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CollapsiblePreviewSection } from '@/components/collapsible-preview-section';
-import { ResponsiveContainer } from '@/components/responsive-layout';
+import { ResponsiveContainer, webReadableContentStyle } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -31,6 +32,8 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { setJourneyModeBaseline } from '@/services/journey-mode';
 import { fetchLocationContext, fetchNearbySovereignties } from '@/services/location-context';
 import type { IndigenousContextData, NearbySovereignty } from '@/types/parks';
+import { getSectionNativeId, jumpToWebSection, PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
+import { startWebTiltingCompass } from '@/utils/web-tilting-compass';
 
 type UserCoordinate = {
   latitude: number;
@@ -97,7 +100,7 @@ function LoadingCompass() {
   );
 }
 
-function HeadingCompass({ heading }: { heading: number | null }) {
+function HeadingCompass({ heading, active }: { heading: number | null; active: boolean }) {
   const rotation = heading == null ? '0deg' : `${-heading}deg`;
 
   return (
@@ -110,8 +113,10 @@ function HeadingCompass({ heading }: { heading: number | null }) {
       </View>
       <View style={styles.headingTextBlock}>
         <ThemedText>
-          {heading == null
+          {!active
             ? 'Get your Coordinates to use the in-app compass.'
+            : heading == null
+            ? 'Compass tilting is not available in this browser or device. Coordinates are still working.'
             : `Device heading: ${Math.round(heading)} degrees`}
         </ThemedText>
       </View>
@@ -201,13 +206,19 @@ export default function WhereAreWeScreen() {
   const scrollRef = useRef<ScrollView | null>(null);
   const sectionOffsets = useRef<Record<string, number>>({});
   const headingSubscriptionRef = useRef<Location.LocationSubscription | null>(null);
+  const webHeadingCleanupRef = useRef<(() => void) | null>(null);
 
   const startHeadingWatch = useCallback(async () => {
-    if (headingSubscriptionRef.current) {
+    if (headingSubscriptionRef.current || webHeadingCleanupRef.current) {
       return;
     }
 
     try {
+      if (Platform.OS === 'web') {
+        webHeadingCleanupRef.current = await startWebTiltingCompass(setHeading);
+        return;
+      }
+
       headingSubscriptionRef.current = await Location.watchHeadingAsync((headingData) => {
         const nextHeading =
           headingData.trueHeading >= 0 ? headingData.trueHeading : headingData.magHeading;
@@ -283,6 +294,9 @@ export default function WhereAreWeScreen() {
       { id: 'nearby', label: 'Nearby Sovereignties' },
     ]);
     setJumpHandler((id) => {
+      if (jumpToWebSection(id)) {
+        return;
+      }
       scrollRef.current?.scrollTo({ y: sectionOffsets.current[id] ?? 0, animated: true });
     });
 
@@ -303,6 +317,8 @@ export default function WhereAreWeScreen() {
     return () => {
       headingSubscriptionRef.current?.remove();
       headingSubscriptionRef.current = null;
+      webHeadingCleanupRef.current?.();
+      webHeadingCleanupRef.current = null;
     };
   }, [startHeadingWatch]);
 
@@ -333,9 +349,12 @@ export default function WhereAreWeScreen() {
       <ScreenBackground variant="where">
         <ResponsiveContainer style={{ gap: padding, paddingTop: 0 }}>
         <ScrollView
+          nativeID={PAGE_SCROLL_NATIVE_ID}
           ref={scrollRef}
-          contentContainerStyle={{ gap: padding, paddingTop: padding, paddingBottom: 28 }}>
-          <ThemedView style={[styles.card, glassSurfaceStyle, { borderColor, gap }]}>
+          contentContainerStyle={[webReadableContentStyle, { gap: padding, paddingTop: padding, paddingBottom: 28 }]}>
+          <ThemedView
+            nativeID={getSectionNativeId('intro')}
+            style={[styles.card, glassSurfaceStyle, { borderColor, gap }]}>
             <ThemedText
               type="title"
               accessibilityRole="header"
@@ -382,15 +401,17 @@ export default function WhereAreWeScreen() {
           </ThemedView>
 
           <ThemedView
+            nativeID={getSectionNativeId('compass')}
             style={[styles.card, glassSurfaceStyle, { borderColor, gap }]}
             onLayout={(event) => {
               sectionOffsets.current.compass = event.nativeEvent.layout.y;
             }}>
             <ThemedText type="subtitle">In-App Compass</ThemedText>
-            <HeadingCompass heading={heading} />
+            <HeadingCompass heading={heading} active={!!coordinate} />
           </ThemedView>
 
           <View
+            nativeID={getSectionNativeId('location')}
             onLayout={(event) => {
               sectionOffsets.current.location = event.nativeEvent.layout.y;
             }}>
@@ -413,6 +434,7 @@ export default function WhereAreWeScreen() {
           {context ? (
             <>
               <View
+                nativeID={getSectionNativeId('placenames')}
                 onLayout={(event) => {
                   sectionOffsets.current.placenames = event.nativeEvent.layout.y;
                 }}>
@@ -434,6 +456,7 @@ export default function WhereAreWeScreen() {
               </View>
 
               <View
+                nativeID={getSectionNativeId('languages')}
                 onLayout={(event) => {
                   sectionOffsets.current.languages = event.nativeEvent.layout.y;
                 }}>
@@ -455,6 +478,7 @@ export default function WhereAreWeScreen() {
               </View>
 
               <View
+                nativeID={getSectionNativeId('territories')}
                 onLayout={(event) => {
                   sectionOffsets.current.territories = event.nativeEvent.layout.y;
                 }}>
@@ -464,6 +488,7 @@ export default function WhereAreWeScreen() {
               </View>
 
               <View
+                nativeID={getSectionNativeId('treaties')}
                 onLayout={(event) => {
                   sectionOffsets.current.treaties = event.nativeEvent.layout.y;
                 }}>
@@ -483,6 +508,7 @@ export default function WhereAreWeScreen() {
               </View>
 
               <View
+                nativeID={getSectionNativeId('resources')}
                 onLayout={(event) => {
                   sectionOffsets.current.resources = event.nativeEvent.layout.y;
                 }}>
@@ -497,6 +523,7 @@ export default function WhereAreWeScreen() {
               </View>
 
               <View
+                nativeID={getSectionNativeId('nearby')}
                 onLayout={(event) => {
                   sectionOffsets.current.nearby = event.nativeEvent.layout.y;
                 }}>

@@ -1,5 +1,6 @@
 import { Tabs, usePathname } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -20,6 +21,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: Palette.yosemiteIvory,
         tabBarInactiveTintColor: Palette.campfire,
         tabBarStyle: {
+          display: Platform.OS === 'web' ? 'none' : 'flex',
           backgroundColor: SurfaceColors.navLight,
           borderTopColor: Palette.summitBlush,
           shadowColor: Palette.campfire,

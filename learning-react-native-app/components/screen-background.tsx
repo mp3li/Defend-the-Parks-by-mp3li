@@ -1,14 +1,21 @@
 import { ImageBackground } from 'expo-image';
 import { type ReactNode } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import { Palette, SurfaceColors } from '@/constants/theme';
+import { PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
 
 type ScreenBackgroundVariant = 'main' | 'where' | 'journey';
 
-const BACKGROUND_IMAGES = {
+const MOBILE_BACKGROUND_IMAGES = {
   main: require('@/assets/images/maria-orlova-3UWc-EMf0zA-unsplash.jpg'),
   where: require('@/assets/images/evan-wise-2wvXI4mjYJ8-unsplash.jpg'),
   journey: require('@/assets/images/evan-wise-mNSSpeJsnQA-unsplash.jpg'),
+};
+
+const WEB_BACKGROUND_IMAGES = {
+  main: require('@/assets/images/denise-jans-XCJt9Z3_0Ks-unsplash.jpg'),
+  where: require('@/assets/images/denise-jans-XCJt9Z3_0Ks-unsplash.jpg'),
+  journey: require('@/assets/images/kyle-loftus-IG1m3RomhPI-unsplash.jpg'),
 };
 
 export function ScreenBackground({
@@ -20,9 +27,25 @@ export function ScreenBackground({
   variant?: ScreenBackgroundVariant;
   style?: ViewStyle;
 }) {
+  const source = Platform.OS === 'web' ? WEB_BACKGROUND_IMAGES[variant] : MOBILE_BACKGROUND_IMAGES[variant];
+  const webWheelProps =
+    Platform.OS === 'web'
+      ? {
+          onWheel: (event: { deltaY?: number }) => {
+            if (typeof document === 'undefined') {
+              return;
+            }
+            const scrollContainer = document.getElementById(PAGE_SCROLL_NATIVE_ID);
+            if (scrollContainer && typeof event.deltaY === 'number') {
+              scrollContainer.scrollTop += event.deltaY;
+            }
+          },
+        }
+      : {};
+
   return (
-    <ImageBackground source={BACKGROUND_IMAGES[variant]} style={[styles.background, style]} contentFit="cover">
-      <View style={styles.dimLayer}>{children}</View>
+    <ImageBackground source={source} style={[styles.background, style]} contentFit="cover">
+      <View {...webWheelProps} style={styles.dimLayer}>{children}</View>
     </ImageBackground>
   );
 }

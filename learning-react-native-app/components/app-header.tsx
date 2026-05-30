@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, type Href } from 'expo-router';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import { Palette, SurfaceColors } from '@/constants/theme';
 import { usePageSections } from '@/context/page-sections-context';
 
@@ -28,6 +29,13 @@ export function AppHeader() {
   const suppressNextHistoryPush = useRef(false);
   const menuSections = sections.length > 0 ? sections : [{ id: 'top', label: 'Top' }];
   const showBackBar = pathname !== '/';
+  const webNavItems: { label: string; href: string; icon: IconSymbolName }[] = [
+    { label: 'Homepage', href: '/', icon: 'house.fill' },
+    { label: 'Search by State', href: '/explore', icon: 'magnifyingglass' },
+    { label: 'Where Are We?', href: '/where-are-we', icon: 'paperplane.fill' },
+    { label: 'Journey Mode', href: '/journey-mode', icon: 'figure.walk' },
+    { label: 'My Saved National Parks & Sites', href: '/lifecycle', icon: 'clock.fill' },
+  ];
 
   useEffect(() => {
     setHistory((current) => {
@@ -69,6 +77,37 @@ export function AppHeader() {
               accessibilityRole="header">
               Defend the Parks by mp3li
             </ThemedText>
+            {Platform.OS === 'web' ? (
+              <View style={styles.webNav}>
+                {webNavItems.map((item) => {
+                  const active =
+                    item.href === '/explore'
+                      ? pathname === '/explore' || pathname.startsWith('/states/') || pathname.startsWith('/parks/')
+                      : pathname === item.href;
+                  return (
+                    <Pressable
+                      key={item.href}
+                      accessibilityRole="link"
+                      accessibilityLabel={`Open ${item.label}`}
+                      onPress={() => router.push(item.href as Href)}
+                      style={[styles.webNavItem, active && styles.webNavItemActive]}>
+                      <ThemedText
+                        type="defaultSemiBold"
+                        style={styles.webNavText}
+                        lightColor={active ? Palette.yosemiteIvory : Palette.summitBlush}
+                        darkColor={active ? Palette.yosemiteIvory : Palette.summitBlush}>
+                        {item.label}
+                      </ThemedText>
+                      <IconSymbol
+                        name={item.icon}
+                        size={16}
+                        color={active ? Palette.yosemiteIvory : Palette.summitBlush}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
             <Pressable
               style={styles.menuButton}
               accessibilityRole="button"
@@ -175,6 +214,33 @@ const styles = StyleSheet.create({
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  webNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginRight: 16,
+  },
+  webNavItem: {
+    minHeight: 38,
+    minWidth: 112,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 149, 95, 0.26)',
+    backgroundColor: 'rgba(4, 4, 12, 0.18)',
+  },
+  webNavItemActive: {
+    borderColor: Palette.campfire,
+    backgroundColor: 'rgba(170, 82, 21, 0.42)',
+  },
+  webNavText: {
+    fontSize: 12,
+    lineHeight: 14,
   },
   jumpLabel: {
     marginTop: 1,

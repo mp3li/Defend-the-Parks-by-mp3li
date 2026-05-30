@@ -39,28 +39,32 @@ If keys are missing or invalid, API areas may show error or empty-state messages
 Check:
 
 - fixed app title is visible at the top;
-- bottom tab navigation is visible;
+- mobile bottom tab navigation is visible;
+- web header navigation is visible and includes Homepage, Search by State, Where Are We?, Journey Mode, and My Saved National Parks & Sites;
 - Jump To compass button opens the page menu;
-- Welcome card preview expands and collapses;
+- mobile Welcome card preview expands and collapses;
+- web Welcome content is expanded and non-collapsible;
 - Featured Park of the Day loads;
 - **Save This Park To My List** saves the park;
 - saving changes the button state;
 - Native Land records connected to the featured park appear when API data is available;
 - National Parks Picture Gallery appears under the welcome card and opens full-size images;
 - National Parks Picture Gallery entries use the same flat section styling, without solid white nested cards;
-- longer sections preview content and expand;
-- short sections do not show an expand arrow.
+- mobile longer sections preview content and expand;
+- web sections are expanded and non-collapsible except National Parks Picture Gallery.
 
 ## Search by State Screen
 
 Check:
 
-- Search tab appears in the bottom navigation with a search icon;
+- Search appears in mobile bottom navigation with a search icon;
+- Search by State appears in web header navigation with an icon;
 - search input filters states by name or abbreviation;
 - state rows update smoothly while filtering;
 - tapping a state opens that state's park list;
 - image gallery appears under the state list;
 - park rows display data returned from the NPS API;
+- web state-result park rows are expanded and non-collapsible;
 - tapping a park opens its profile.
 
 ## Park Profile
@@ -76,7 +80,8 @@ Check:
 - Placename Records is its own section;
 - placename, risk, renewal, and map resources are linked;
 - Visiting the Park & Park Website uses subheaders for hours, seasonal exceptions, address, contact, and website/directions;
-- collapsible sections expand without scroll jumping;
+- mobile collapsible sections expand without scroll jumping;
+- web profile sections are expanded and non-collapsible except the picture gallery;
 - saved state persists when navigating away and back.
 
 ## Where Are We?
@@ -93,7 +98,8 @@ Check:
 - languages, territories, treaties, resource links, and source links are visible;
 - treaty records include the same research-starting note used on park/profile sections;
 - Nearby Sovereignties displays approximate nearby records when available;
-- in-app compass area says `Get your Coordinates to use the in-app compass.` before heading data is available;
+- in-app compass area says `Get your Coordinates to use the in-app compass.` before coordinates are loaded;
+- web compass area says `Compass tilting is not available in this browser or device. Coordinates are still working.` only after coordinates are active and tilting is unavailable;
 - heading updates when device heading data is available;
 - Journey Mode is not duplicated as a section on this screen.
 
@@ -104,13 +110,17 @@ Check:
 - Journey Mode tab opens directly from the bottom navigation;
 - intro card uses the same header styling as other screens;
 - **Begin Journey Mode** starts the Journey Mode permission/location flow;
+- active Journey Mode changes the button to **Stop Journey Mode**;
+- stopping Journey Mode returns the button to **Begin Journey Mode** and shows `Journey Mode Ended. Begin Again?`;
 - In-App Compass appears above How Journey Mode Works;
 - in-app compass heading updates when device/browser heading data is available;
 - How Journey Mode Works panel has a readable glass background;
 - notification/background permission prompts appear when the runtime supports them;
 - notification behavior is not imported until Journey Mode notification permissions or scheduling are needed;
 - Last update displays `Journey Mode not yet enabled` before Journey Mode starts;
+- Last update changes after Journey Mode starts;
 - current location result sections display after coordinates are loaded.
+- web Journey Mode checks every 5 minutes only while the tab remains open.
 
 Expo Go note:
 
@@ -124,8 +134,9 @@ Check:
 - Back strip appears after leaving Home;
 - **Back** returns to the previous screen in navigation history;
 - **Return to Homepage** returns directly to Home;
-- bottom nav selected icons/text use the ivory app-title color;
-- state/profile pages visually keep Search selected in the bottom nav.
+- mobile bottom nav selected icons/text use the ivory app-title color;
+- web header nav selected icons/text use the ivory app-title color;
+- state/profile pages visually keep Search selected in navigation.
 
 ## Saved Parks
 

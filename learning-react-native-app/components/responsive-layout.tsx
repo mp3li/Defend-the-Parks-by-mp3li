@@ -128,6 +128,11 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'stretch',
   },
+  webReadableContent: {
+    width: '100%',
+    maxWidth: 980,
+    alignSelf: 'center',
+  },
   masterDetailContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -148,3 +153,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 });
+
+export const webReadableContentStyle =
+  Platform.OS === 'web' ? styles.webReadableContent : null;

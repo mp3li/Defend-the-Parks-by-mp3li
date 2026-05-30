@@ -43,6 +43,10 @@ export async function getJourneyModeLastCheck() {
   return AsyncStorage.getItem(JOURNEY_MODE_LAST_CHECK_KEY);
 }
 
+export async function setJourneyModeLastCheck(checkedAt: string) {
+  await AsyncStorage.setItem(JOURNEY_MODE_LAST_CHECK_KEY, checkedAt);
+}
+
 export async function setJourneyModeBaseline(context: IndigenousContextData | null) {
   const signature = getTerritorySignature(context);
   if (signature) {

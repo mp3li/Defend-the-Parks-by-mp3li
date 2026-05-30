@@ -25,6 +25,7 @@ type JourneyModePanelProps = {
   title?: string;
   description?: string;
   showToggle?: boolean;
+  statusRefreshKey?: number;
 };
 
 function formatEventSignature(signature: string) {
@@ -40,6 +41,7 @@ export function JourneyModePanel({
   title = 'Journey Mode',
   description = 'Optional background checks can notify you when the returned territory context changes during travel.',
   showToggle = true,
+  statusRefreshKey = 0,
 }: JourneyModePanelProps) {
   const { reportError, showSnackbar } = useAppStateContext();
   const borderColor = useThemeColor({ light: Palette.valleyMoss, dark: Palette.summitBlush }, 'icon');
@@ -115,7 +117,7 @@ export function JourneyModePanel({
   useEffect(() => {
     void configureNotificationBehavior();
     void refreshJourneyStatus();
-  }, [refreshJourneyStatus]);
+  }, [refreshJourneyStatus, statusRefreshKey]);
 
   return (
     <ThemedView style={[styles.card, { borderColor }]}>
@@ -144,7 +146,9 @@ export function JourneyModePanel({
       <ThemedText>
         {journeyLastCheck
           ? `Last update: ${new Date(journeyLastCheck).toLocaleString()}`
-          : 'Last update: Journey Mode not yet enabled'}
+          : journeyModeEnabled
+            ? 'Last update: Journey Mode enabled. Waiting for the next location check.'
+            : 'Last update: Journey Mode not yet enabled'}
       </ThemedText>
       {journeyEvent ? (
         <ThemedView style={styles.eventBox}>

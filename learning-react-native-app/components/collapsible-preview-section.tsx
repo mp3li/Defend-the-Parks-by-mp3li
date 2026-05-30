@@ -12,16 +12,18 @@ export function CollapsiblePreviewSection({
   defaultExpanded = false,
   collapsible = true,
   previewHeight = 132,
+  webAutoExpanded = true,
 }: {
   title: string;
   children: ReactNode;
   defaultExpanded?: boolean;
   collapsible?: boolean;
   previewHeight?: number;
+  webAutoExpanded?: boolean;
 }) {
-  const webDefaultExpanded = Platform.OS === 'web';
-  const sectionCollapsible = Platform.OS === 'web' ? true : collapsible;
-  const [expanded, setExpanded] = useState(webDefaultExpanded || defaultExpanded);
+  const isWeb = Platform.OS === 'web';
+  const sectionCollapsible = isWeb ? !webAutoExpanded : collapsible;
+  const [expanded, setExpanded] = useState(isWeb ? webAutoExpanded : defaultExpanded);
 
   return (
     <View style={[glassSurfaceStyle, styles.section]}>

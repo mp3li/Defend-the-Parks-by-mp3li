@@ -16,7 +16,7 @@ Main systems:
 - `constants/`: theme, Native Land resource links, and U.S. state data.
 
 The app keeps API calls in services so screens can focus on state, permissions, and rendering.
-Shared visual behavior lives in reusable components so Home, Search, Park Profile, Where Are We?, and Journey Mode use the same section styling.
+Shared visual behavior lives in reusable components so Home, Search, Park Profile, Where Are We?, and Journey Mode use the same section styling while still allowing web-specific layout behavior.
 
 ## Location Flow
 
@@ -28,7 +28,7 @@ Flow:
 2. The app requests foreground location permission.
 3. If permission is granted, the app reads current coordinates.
 4. The button changes into a loaded coordinate state with the coordinate pair and refresh icon.
-5. The app starts heading updates when available.
+5. The app starts heading or web tilting/orientation updates when available.
 6. The app calls Native Land with the latitude and longitude.
 7. The app displays records using the same section wording and structure used by park/profile Native Land sections where the record types overlap.
 8. The app checks nearby sample points for Nearby Sovereignties.
@@ -92,25 +92,27 @@ The compass is built from React Native views:
 - orange upper needle;
 - ivory lower needle.
 
-It uses `expo-location` heading updates through `Location.watchHeadingAsync`. When heading data is available, the app rotates the compass by the inverse of the device heading so the needle points north.
+It uses `expo-location` heading updates through `Location.watchHeadingAsync` on native runtimes. On web, the app also tries browser `DeviceOrientationEvent` tilting/orientation data after a user action. When heading data is available, the app rotates the compass by the inverse of the device heading so the needle points north.
 
-The compass does not require NPS API or Native Land API network data. It can work without API responses if the app is already running and the device or browser provides heading sensor data. Availability still depends on platform permissions, hardware sensors, and browser/device behavior.
+The compass does not require NPS API or Native Land API network data. It can work without API responses if the app is already running and the device or browser provides heading or tilting sensor data. Availability still depends on platform permissions, hardware sensors, and browser/device behavior. If tilting is unavailable on web, the app keeps coordinate lookup working and displays a clear browser/device limitation message.
 
 ## Journey Mode
 
-Journey Mode is opt-in. In the current UI, the **Begin Journey Mode** button starts the Journey Mode permission and location flow.
+Journey Mode is opt-in. In the current UI, the **Begin Journey Mode** button starts the Journey Mode permission and location flow. While active, the button changes to **Stop Journey Mode**. After stopping, the screen shows **Journey Mode Ended. Begin Again?** and resets the compass/result state.
 
 When turned on:
 
 - notification permission is requested;
 - background location permission is requested when available;
 - enabled state is stored in AsyncStorage;
+- last update time is stored when foreground Journey Mode checks run;
 - the current Native Land context can be stored as a baseline;
 - a background location task is registered in source code;
 - the task compares new returned context to the saved baseline;
 - a local notification is scheduled if returned context changes.
 - the Journey Mode screen displays current location results using the same general result sections as Where Are We?.
 - an updating loading state appears while Journey Mode is getting current or refreshed coordinate context.
+- web builds check for updated Journey Mode coordinates every 5 minutes only while the tab remains open.
 
 Implementation locations:
 
@@ -145,12 +147,15 @@ The app uses:
 
 - fixed global app header;
 - Back strip with history-based Back and direct Return to Homepage actions;
-- bottom tab navigation;
+- mobile bottom tab navigation;
+- web header navigation with icons and text;
 - Jump To compass menu;
 - glassy background surfaces;
 - flat glass section surfaces without nested solid white subcards;
-- collapsible preview sections;
+- web sections that are expanded by default and non-collapsible except for the National Parks Picture Gallery;
+- mobile collapsible preview sections where long content needs a preview;
 - National Parks Picture Gallery with full-size image modal;
+- National Parks Picture Gallery paging on web;
 - structured Visiting the Park & Park Website content with subheaders for hours, seasonal exceptions, address, contact, and website/directions;
 - accessible buttons;
 - responsive spacing helpers;
@@ -178,6 +183,14 @@ Palette:
 - Deep Pine `#0b1406`
 - Night `#04040c`
 - Ivory neutral `#f7efe2`
+
+Background assets:
+
+- Mobile main background: `maria-orlova-3UWc-EMf0zA-unsplash.jpg`
+- Mobile Where Are We? background: `evan-wise-2wvXI4mjYJ8-unsplash.jpg`
+- Mobile Journey Mode background: `evan-wise-mNSSpeJsnQA-unsplash.jpg`
+- Web Home/Search/State/Park/Where/Saved background: `denise-jans-XCJt9Z3_0Ks-unsplash.jpg`
+- Web Journey Mode background: `kyle-loftus-IG1m3RomhPI-unsplash.jpg`
 
 ## Platform Caveat
 

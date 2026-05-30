@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PARK_DETAIL_SECTIONS, ParkDetailContent } from '@/components/park/park-detail-content';
 import { AccessibleButton } from '@/components/accessible-button';
-import { ResponsiveContainer } from '@/components/responsive-layout';
+import { ResponsiveContainer, webReadableContentStyle } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -17,6 +17,7 @@ import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { fetchIndigenousContextByCoordinates } from '@/services/native-land-api';
 import { fetchParkByCode } from '@/services/nps-api';
 import type { IndigenousContextData, NpsPark } from '@/types/parks';
+import { jumpToWebSection, PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
 
 export default function ParkDetailScreen() {
   const { parkCode } = useLocalSearchParams<{ parkCode: string }>();
@@ -69,6 +70,9 @@ export default function ParkDetailScreen() {
         ...PARK_DETAIL_SECTIONS,
       ]);
       setJumpHandler((id) => {
+        if (jumpToWebSection(id)) {
+          return;
+        }
         scrollRef.current?.scrollTo({ y: sectionOffsets.current[id] ?? 0, animated: true });
       });
       void loadPark();
@@ -90,7 +94,7 @@ export default function ParkDetailScreen() {
 
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
-      <ScreenBackground>
+      <ScreenBackground variant="where">
         <ResponsiveContainer style={{ paddingTop: 0, paddingBottom: padding }}>
         {loading ? (
           <ThemedView style={[styles.statusCard, glassSurfaceStyle]}>
@@ -108,7 +112,10 @@ export default function ParkDetailScreen() {
             />
           </ThemedView>
         ) : (
-          <ScrollView ref={scrollRef} contentContainerStyle={[styles.scrollContainer, { paddingTop: padding }]}>
+          <ScrollView
+            nativeID={PAGE_SCROLL_NATIVE_ID}
+            ref={scrollRef}
+            contentContainerStyle={[webReadableContentStyle, styles.scrollContainer, { paddingTop: padding }]}>
             <ParkDetailContent
               park={park}
               indigenousContext={indigenousContext}

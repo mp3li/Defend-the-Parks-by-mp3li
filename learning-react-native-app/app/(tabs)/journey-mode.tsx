@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AccessibleButton } from '@/components/accessible-button';
 import { CollapsiblePreviewSection } from '@/components/collapsible-preview-section';
 import { JourneyModePanel } from '@/components/journey-mode-panel';
-import { ResponsiveContainer } from '@/components/responsive-layout';
+import { ResponsiveContainer, webReadableContentStyle } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -16,13 +16,18 @@ import { useAppStateContext } from '@/context/app-state-context';
 import { usePageSections } from '@/context/page-sections-context';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import {
+  getJourneyModeEnabled,
   requestJourneyModePermissions,
   setJourneyModeBaseline,
   setJourneyModeEnabled,
+  setJourneyModeLastCheck,
   startJourneyModeTask,
+  stopJourneyModeTask,
 } from '@/services/journey-mode';
 import { fetchLocationContext, fetchNearbySovereignties } from '@/services/location-context';
 import type { IndigenousContextData, NearbySovereignty } from '@/types/parks';
+import { getSectionNativeId, jumpToWebSection, PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
+import { startWebTiltingCompass } from '@/utils/web-tilting-compass';
 
 type LoadJourneyLocationOptions = {
   silent?: boolean;
@@ -46,7 +51,7 @@ function BulletList({ items, emptyText }: { items: string[]; emptyText: string }
   );
 }
 
-function HeadingCompass({ heading }: { heading: number | null }) {
+function HeadingCompass({ heading, active }: { heading: number | null; active: boolean }) {
   const rotation = heading == null ? '0deg' : `${-heading}deg`;
 
   return (
@@ -59,8 +64,10 @@ function HeadingCompass({ heading }: { heading: number | null }) {
       </View>
       <View style={styles.headingTextBlock}>
         <ThemedText>
-          {heading == null
+          {!active
             ? 'Begin Journey Mode to use the in-app compass.'
+            : heading == null
+            ? 'Compass tilting is not available in this browser or device. Coordinates are still working.'
             : `Device heading: ${Math.round(heading)} degrees`}
         </ThemedText>
       </View>
@@ -81,14 +88,22 @@ export default function JourneyModeScreen() {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [permissionMessage, setPermissionMessage] = useState('');
   const [heading, setHeading] = useState<number | null>(null);
+  const [journeyModeEnabled, setJourneyModeEnabledState] = useState(false);
+  const [journeyStatusRefreshKey, setJourneyStatusRefreshKey] = useState(0);
   const headingSubscriptionRef = useRef<Location.LocationSubscription | null>(null);
+  const webHeadingCleanupRef = useRef<(() => void) | null>(null);
 
   const startHeadingWatch = useCallback(async () => {
-    if (headingSubscriptionRef.current) {
+    if (headingSubscriptionRef.current || webHeadingCleanupRef.current) {
       return;
     }
 
     try {
+      if (Platform.OS === 'web') {
+        webHeadingCleanupRef.current = await startWebTiltingCompass(setHeading);
+        return;
+      }
+
       headingSubscriptionRef.current = await Location.watchHeadingAsync((headingData) => {
         const nextHeading =
           headingData.trueHeading >= 0 ? headingData.trueHeading : headingData.magHeading;
@@ -103,11 +118,14 @@ export default function JourneyModeScreen() {
     return () => {
       headingSubscriptionRef.current?.remove();
       headingSubscriptionRef.current = null;
+      webHeadingCleanupRef.current?.();
+      webHeadingCleanupRef.current = null;
     };
   }, []);
 
   useFocusEffect(
     useCallback(() => {
+      void getJourneyModeEnabled().then(setJourneyModeEnabledState);
       setSections([
         { id: 'overview', label: 'Overview' },
         { id: 'compass', label: 'In-App Compass' },
@@ -115,6 +133,9 @@ export default function JourneyModeScreen() {
         { id: 'results', label: 'Current Location Results' },
       ]);
       setJumpHandler((id) => {
+        if (jumpToWebSection(id)) {
+          return;
+        }
         scrollRef.current?.scrollTo({ y: sectionOffsets.current[id] ?? 0, animated: true });
       });
 
@@ -124,6 +145,32 @@ export default function JourneyModeScreen() {
       };
     }, [setJumpHandler, setSections])
   );
+
+  const endJourneyMode = useCallback(async () => {
+    try {
+      setLoadingLocation(true);
+      await setJourneyModeEnabled(false);
+      if (Platform.OS !== 'web') {
+        await stopJourneyModeTask();
+      }
+      setJourneyModeEnabledState(false);
+      setCoordinate(null);
+      setContext(null);
+      setNearby([]);
+      setHeading(null);
+      webHeadingCleanupRef.current?.();
+      webHeadingCleanupRef.current = null;
+      headingSubscriptionRef.current?.remove();
+      headingSubscriptionRef.current = null;
+      setPermissionMessage('Journey Mode Ended. Begin Again?');
+      setJourneyStatusRefreshKey((current) => current + 1);
+      showSnackbar('Journey Mode Ended. Begin Again?', 'info');
+    } catch (error) {
+      reportError(error, 'Unable to end Journey Mode.');
+    } finally {
+      setLoadingLocation(false);
+    }
+  }, [reportError, showSnackbar]);
 
   const loadJourneyLocation = useCallback(async (options: LoadJourneyLocationOptions = {}) => {
     try {
@@ -153,15 +200,20 @@ export default function JourneyModeScreen() {
       setContext(nextContext);
       await setJourneyModeBaseline(nextContext);
       await setJourneyModeEnabled(true);
+      setJourneyModeEnabledState(true);
+      await setJourneyModeLastCheck(new Date().toISOString());
       try {
         await startJourneyModeTask();
       } catch {
-        setPermissionMessage('Journey Mode is enabled, but background updates may be limited in this runtime.');
+        setPermissionMessage(
+          'Journey Mode is enabled. Background updates run differently on this web build vs the future iteration official app-store builds. In this web build, Defend the Parks will check every 5 minutes to see if your location has changed, only if you keep this tab open.'
+        );
       }
       setNearby(await fetchNearbySovereignties(nextCoordinate.latitude, nextCoordinate.longitude, nextContext));
       if (!options.silent) {
         showSnackbar('Journey Mode location context updated.', 'info');
       }
+      setJourneyStatusRefreshKey((current) => current + 1);
     } catch (error) {
       reportError(error, 'Unable to load Journey Mode location context.');
     } finally {
@@ -172,7 +224,7 @@ export default function JourneyModeScreen() {
   }, [reportError, showSnackbar, startHeadingWatch]);
 
   useEffect(() => {
-    if (Platform.OS !== 'web' || !coordinate) {
+    if (Platform.OS !== 'web' || !coordinate || !journeyModeEnabled) {
       return;
     }
 
@@ -183,7 +235,7 @@ export default function JourneyModeScreen() {
     return () => {
       clearInterval(interval);
     };
-  }, [coordinate, loadJourneyLocation]);
+  }, [coordinate, journeyModeEnabled, loadJourneyLocation]);
 
   const languages = context?.languages ?? [];
   const territories = context?.territories ?? [];
@@ -194,9 +246,11 @@ export default function JourneyModeScreen() {
       <ScreenBackground variant="journey">
         <ResponsiveContainer style={{ gap: padding, paddingTop: 0 }}>
         <ScrollView
+          nativeID={PAGE_SCROLL_NATIVE_ID}
           ref={scrollRef}
-          contentContainerStyle={{ gap: padding, paddingTop: padding, paddingBottom: 28 }}>
+          contentContainerStyle={[webReadableContentStyle, { gap: padding, paddingTop: padding, paddingBottom: 28 }]}>
           <ThemedView
+            nativeID={getSectionNativeId('overview')}
             style={[styles.noteCard, glassSurfaceStyle, { gap: 10 }]}
             onLayout={(event) => {
               sectionOffsets.current.overview = event.nativeEvent.layout.y;
@@ -217,12 +271,20 @@ export default function JourneyModeScreen() {
               records associated with the land you are currently on, as you go on a journey.
             </ThemedText>
             <AccessibleButton
-              label="Begin Journey Mode"
+              label={journeyModeEnabled ? 'Stop Journey Mode' : 'Begin Journey Mode'}
               onPress={() => {
-                void loadJourneyLocation();
+                if (journeyModeEnabled) {
+                  void endJourneyMode();
+                } else {
+                  void loadJourneyLocation();
+                }
               }}
-              variant="primary"
-              accessibilityHint="Requests location permission and loads Native Land context for Journey Mode"
+              variant={journeyModeEnabled ? 'secondary' : 'primary'}
+              accessibilityHint={
+                journeyModeEnabled
+                  ? 'Stops Journey Mode location checks'
+                  : 'Requests location permission and loads Native Land context for Journey Mode'
+              }
             />
             {permissionMessage ? <ThemedText>{permissionMessage}</ThemedText> : null}
             {coordinate ? (
@@ -233,19 +295,17 @@ export default function JourneyModeScreen() {
           </ThemedView>
 
           <ThemedView
+            nativeID={getSectionNativeId('compass')}
             style={[styles.noteCard, glassSurfaceStyle]}
             onLayout={(event) => {
               sectionOffsets.current.compass = event.nativeEvent.layout.y;
             }}>
             <ThemedText type="subtitle">In-App Compass</ThemedText>
-            <HeadingCompass heading={heading} />
-            <ThemedText>
-              Journey Mode uses the same in-app compass style as Where Are We? when device heading
-              data is available.
-            </ThemedText>
+            <HeadingCompass heading={heading} active={journeyModeEnabled} />
           </ThemedView>
 
           <ThemedView
+            nativeID={getSectionNativeId('journey')}
             style={styles.transparentWrap}
             onLayout={(event) => {
               sectionOffsets.current.journey = event.nativeEvent.layout.y;
@@ -254,11 +314,13 @@ export default function JourneyModeScreen() {
               title="How Journey Mode Works"
               currentContext={context}
               showToggle={false}
+              statusRefreshKey={journeyStatusRefreshKey}
               description="With your permission, this app can run a background service checking your location similar to how navigation apps use your location as you go on a drive and give you directions. Instead of directions, you will receive real-time updates and notifications when you have traveled into a new area that returns new information from the Native Land API, along with all available information for the current location."
             />
           </ThemedView>
 
           <ThemedView
+            nativeID={getSectionNativeId('results')}
             style={[styles.noteCard, glassSurfaceStyle]}
             onLayout={(event) => {
               sectionOffsets.current.results = event.nativeEvent.layout.y;

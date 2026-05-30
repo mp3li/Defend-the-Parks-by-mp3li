@@ -13,6 +13,7 @@ import {
 } from '@/constants/native-land-resources';
 import { US_STATE_NAME_BY_CODE } from '@/constants/us-states';
 import type { IndigenousContextData, NpsAddress, NpsPark } from '@/types/parks';
+import { getSectionNativeId } from '@/utils/jump-to-section';
 
 export const PARK_DETAIL_SECTIONS = [
   { id: 'native-land', label: 'Native Land Records' },
@@ -208,7 +209,7 @@ export function ParkDetailContent({
   return (
     <View style={styles.container}>
       {showHeroSection ? (
-        <ThemedView style={[styles.heroCard, glassSurfaceStyle]}>
+        <ThemedView nativeID={getSectionNativeId('top')} style={[styles.heroCard, glassSurfaceStyle]}>
           {primaryImage?.url ? (
             <Image
               source={{ uri: primaryImage.url }}
@@ -237,7 +238,7 @@ export function ParkDetailContent({
         </ThemedView>
       ) : null}
 
-      <View onLayout={sectionLayout('native-land')}>
+      <View nativeID={getSectionNativeId('native-land')} onLayout={sectionLayout('native-land')}>
       <CollapsiblePreviewSection
         title={nativeLandTitle ?? 'About Native Land Records Connected to this Area'}
         collapsible={indigenousNames.length + nameMeanings.length > 4}>
@@ -258,7 +259,7 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('placenames')}>
+      <View nativeID={getSectionNativeId('placenames')} onLayout={sectionLayout('placenames')}>
       <CollapsiblePreviewSection
         title={`Placename Records Returned for ${recordPlaceName}`}
         collapsible={indigenousNames.length + nameMeanings.length > 4}>
@@ -276,13 +277,13 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('overview')}>
+      <View nativeID={getSectionNativeId('overview')} onLayout={sectionLayout('overview')}>
       <CollapsiblePreviewSection title="Overview">
         <ThemedText>{park.description || 'No overview was provided by the NPS API.'}</ThemedText>
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('get-involved')}>
+      <View nativeID={getSectionNativeId('get-involved')} onLayout={sectionLayout('get-involved')}>
       <CollapsiblePreviewSection title="Get Involved and Defend this Park">
         <ThemedText>
           National parks are protected so that future generations can experience these landscapes,
@@ -306,7 +307,7 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('languages')}>
+      <View nativeID={getSectionNativeId('languages')} onLayout={sectionLayout('languages')}>
       <CollapsiblePreviewSection title={`Languages Connected to ${recordPlaceName}`} collapsible={languages.length > 4}>
         <ThemedText>
           Languages are listed before territories because language carries relationship to place,
@@ -317,13 +318,13 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('territories')}>
+      <View nativeID={getSectionNativeId('territories')} onLayout={sectionLayout('territories')}>
       <CollapsiblePreviewSection title={`Territories in ${recordPlaceName}`} collapsible={territories.length > 4}>
         <BulletList items={territories} label="territory records" />
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('treaties')}>
+      <View nativeID={getSectionNativeId('treaties')} onLayout={sectionLayout('treaties')}>
       <CollapsiblePreviewSection title={`Treaties Connected to ${recordPlaceName}`} collapsible={treaties.length > 4}>
         <ThemedText>
           Treaty records identify agreements returned by Native Land for {recordPlaceName}. They can point
@@ -339,7 +340,7 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('native-land-resources')}>
+      <View nativeID={getSectionNativeId('native-land-resources')} onLayout={sectionLayout('native-land-resources')}>
       <CollapsiblePreviewSection title="Native Land Public Resources and Map Tools">
         <ThemedText>
           These links open Native Land public search and map tools. They are not limited to this
@@ -350,7 +351,7 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('activities')}>
+      <View nativeID={getSectionNativeId('activities')} onLayout={sectionLayout('activities')}>
       <CollapsiblePreviewSection
         title={`Activities Listed on the National Park Website for ${park.fullName}:`}
         collapsible={activityNames.length > 4}>
@@ -358,7 +359,7 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('topics')}>
+      <View nativeID={getSectionNativeId('topics')} onLayout={sectionLayout('topics')}>
       <CollapsiblePreviewSection
         title={`Topics Listed by the National Park Service for ${park.fullName}:`}
         collapsible={topicNames.length > 4}>
@@ -366,13 +367,13 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('weather')}>
+      <View nativeID={getSectionNativeId('weather')} onLayout={sectionLayout('weather')}>
       <CollapsiblePreviewSection title="Weather" collapsible={false}>
         <ThemedText>{park.weatherInfo || 'No weather guidance provided.'}</ThemedText>
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('visiting')}>
+      <View nativeID={getSectionNativeId('visiting')} onLayout={sectionLayout('visiting')}>
       <CollapsiblePreviewSection title="Visiting the Park & Park Website">
         {primaryAddress ? (
           <ThemedText>
@@ -461,7 +462,7 @@ export function ParkDetailContent({
       </CollapsiblePreviewSection>
       </View>
 
-      <View onLayout={sectionLayout('fees')}>
+      <View nativeID={getSectionNativeId('fees')} onLayout={sectionLayout('fees')}>
       <CollapsiblePreviewSection title="Entrance Fees" collapsible={park.entranceFees.length > 1}>
         {park.entranceFees.length === 0 ? (
           <ThemedText>No entrance fee data listed for this park.</ThemedText>
@@ -480,7 +481,7 @@ export function ParkDetailContent({
       </View>
 
       {park.entrancePasses.length > 0 ? (
-        <View onLayout={sectionLayout('passes')}>
+        <View nativeID={getSectionNativeId('passes')} onLayout={sectionLayout('passes')}>
         <CollapsiblePreviewSection title="Entrance Passes" collapsible={park.entrancePasses.length > 1}>
           {park.entrancePasses.map((pass, index) => (
             <View key={`${pass.title}-${pass.cost}-${index}`} style={styles.listItem}>

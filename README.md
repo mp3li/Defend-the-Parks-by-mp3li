@@ -67,15 +67,15 @@ Defend the Parks by mp3li was built as a final project for **DATA 144 - Data Str
 
 The app is built to feel useful first. It is not only a list of parks, and it is not only a class demo. It is a mobile field-style guide for asking better questions about place: What National Park Service locations are near or connected to a state? What does the National Park Service publish about that place? What Indigenous languages, territories, treaties, placenames, and public Native Land resources are connected to the land? What changes when I physically move somewhere else?
 
-Under the hood, those workflows are supported by structured app state, searchable lists, saved records, API integration, local persistence, GPS-based lookup, background-task source code, and repeatable expandable sections. The project stays practical while demonstrating the final-project requirements through a real user experience.
+Under the hood, those workflows are supported by structured app state, searchable lists, saved records, API integration, local persistence, GPS-based lookup, background-task source code, and responsive mobile/web interface behavior. The project stays practical while demonstrating the final-project requirements through a real user experience.
 
 The app intentionally avoids presenting Native Land data as fixed legal borders. Indigenous sovereignty, language, relationship to land, and public data cannot be flattened into one clean boundary. Defend the Parks presents records as educational context, centers languages when available, and links users back to public source material for further research.
 
 ## What the App Provides
 
-- **Fixed app shell:** persistent app title, compass Jump To menu, history-aware Back strip, Return to Homepage action, and bottom tab navigation.
-- **Homepage welcome section:** app purpose, National Park Service/Native Land API explanation, expandable introduction copy, and user orientation.
-- **National Parks Picture Gallery:** alphabetized NPS image gallery, expandable image list, full-size image modal, and visible image credits.
+- **Fixed app shell:** persistent app title, compass Jump To menu, history-aware Back strip, Return to Homepage action, mobile bottom tab navigation, and web header navigation.
+- **Homepage welcome section:** app purpose, National Park Service/Native Land API explanation, and user orientation.
+- **National Parks Picture Gallery:** alphabetized NPS image gallery, the only expandable section on web, paged web loading, full-size image modal, and visible image credits.
 - **Featured Park of the Day:** date, selected park or NPS location name, NPS image, image credit, save button, and the same detailed content system used on profile pages.
 - **About Native Land Records section:** explanation of what Native Land records are being used for and why the app centers languages while still including territories and treaties.
 - **Placename Records:** placename records returned by Native Land when available.
@@ -92,10 +92,10 @@ The app intentionally avoids presenting Native Land data as fixed legal borders.
 - **Entrance Fees:** NPS entrance-fee records when returned.
 - **Entrance Passes:** NPS pass records when returned.
 - **Quick Actions:** official website, directions, phone, email, and related action buttons when data is available.
-- **Search by State:** state search, state result pages, returned count, and expandable rows for parks and other NPS-maintained locations.
+- **Search by State:** state search, state result pages, returned count, and rows for parks and other NPS-maintained locations.
 - **Park and NPS-location profiles:** full profile pages for parks, historic sites, trails, memorials, battlefields, monuments, and other NPS designations returned by the API.
 - **Where Are We? Mode:** foreground GPS lookup, coordinate-acquired button state, in-app compass, Location Context, placenames, languages, territories, treaties, Native Land public resources, Nearby Sovereignties, and source links for the user's current location.
-- **Journey Mode:** travel-aware GPS flow with Begin Journey Mode action, in-app compass, How Journey Mode Works explanation, current location results, persisted last-update state, and background-task/notification source.
+- **Journey Mode:** travel-aware GPS flow with Begin/Stop Journey Mode action, in-app compass, How Journey Mode Works explanation, current location results, persisted last-update state, web tab-open polling, and background-task/notification source.
 - **Saved Parks:** saved count, saved park list, open actions, remove actions, and persisted saved state.
 - **Broadcast/system-event coverage:** AppState listener, deep-link handling, and Journey Mode context-change state for the coursework broadcast/system-event requirement.
 
@@ -129,7 +129,7 @@ The Homepage is the main guided entry point. It introduces the purpose of the ap
 
 ### 2. Search by State
 
-Search by State is for browsing National Park Service records geographically. Users search the state list, open a state page, review how many NPS-maintained locations were returned, expand park/location rows for a preview, and tap into a full profile page when they want the complete set of park data and Native Land context.
+Search by State is for browsing National Park Service records geographically. Users search the state list, open a state page, review how many NPS-maintained locations were returned, and tap into a full profile page when they want the complete set of park data and Native Land context.
 
 <p align="center">
   <img src="docs/readme-assets/gifs/search.gif" alt="Search by State flow with state list and state result pages" width="360" />
@@ -171,7 +171,7 @@ Where Are We? is the current-location mode. After the user gives permission, the
 
 ### 4. Journey Mode
 
-Journey Mode is for road trips, moving through different areas, or any situation where the user wants updated context as they travel. The mode explains the permission model, starts from a deliberate **Begin Journey Mode** action, and uses the same Native Land result structure as Where Are We? so users do not have to learn a second interface.
+Journey Mode is for road trips, moving through different areas, or any situation where the user wants updated context as they travel. The mode explains the permission model, starts from a deliberate **Begin Journey Mode** action, changes to **Stop Journey Mode** while active, and uses the same Native Land result structure as Where Are We? so users do not have to learn a second interface.
 
 <p align="center">
   <img src="docs/readme-assets/gifs/journey.gif" alt="Journey Mode intro and current location result area" width="360" />
@@ -226,13 +226,14 @@ Journey Mode is the app's travel-aware GPS feature. It is built for movement: ro
 
 The source code includes:
 
-- Journey Mode start flow;
+- Journey Mode start/stop flow;
 - stored baseline context;
 - background task registration with `expo-task-manager`;
 - background location source with `expo-location`;
 - local notification source with `expo-notifications`;
 - comparison logic for changed Native Land context;
 - persisted last-update state;
+- web polling every 5 minutes while the tab is open;
 - shared result rendering with Where Are We?.
 
 Expo Go can show and test the foreground portions of this flow, but full background location and notification behavior is platform/build dependent. For final grading, this project documents the implemented source and can be provided as a development build so the instructor can test the native behavior that Expo Go may not fully run on iPhone.
@@ -241,9 +242,9 @@ Expo Go can show and test the foreground portions of this flow, but full backgro
 
 The in-app compass appears in **Where Are We? Mode** and **Journey Mode**. It is built from React Native views, not a static image: a dark circular face, orange border, faint ivory crosshairs, orange needle, and ivory tail. The same visual language is also used for the fixed header's Jump To compass icon.
 
-The compass uses `expo-location` heading updates through `Location.watchHeadingAsync`. When the device or browser provides heading data, the app rotates the compass by the inverse of the reported heading so the needle points north. If heading data is not available, the app shows a plain prompt instead of pretending it has a reliable compass reading.
+The compass uses `expo-location` heading updates through `Location.watchHeadingAsync` on native runtimes and a web-only `DeviceOrientationEvent` fallback when a browser provides tilting/orientation data. When heading data is available, the app rotates the compass by the inverse of the reported heading so the needle points north. If compass tilting is unavailable, the app says so clearly while still allowing coordinate lookups to work.
 
-The compass does not need NPS API or Native Land API network data to calculate heading. It can work without API responses if the app is already running and the device/browser still provides heading sensor data, but support depends on platform permissions, hardware sensors, and browser/device behavior.
+The compass does not need NPS API or Native Land API network data to calculate heading. It can work without API responses if the app is already running and the device/browser still provides heading or tilting sensor data, but support depends on platform permissions, hardware sensors, and browser/device behavior.
 
 ## How It Was Built
 
@@ -255,7 +256,7 @@ The compass does not need NPS API or Native Land API network data to calculate h
 | Styling | Shared theme constants, themed components, custom fonts, glass-style section surfaces |
 | Fonts | League Spartan Bold for the app title, Aileron Regular and Italic for app text |
 | Data | National Park Service API and Native Land API |
-| GPS and compass | `expo-location` foreground location and heading data |
+| GPS and compass | `expo-location` foreground location and heading data, plus web orientation fallback when available |
 | Background task source | `expo-task-manager` |
 | Notifications | `expo-notifications` local notification source |
 | Local persistence | AsyncStorage and app context state |
@@ -345,6 +346,8 @@ Visual assets currently used by the app:
 | `maria-orlova-3UWc-EMf0zA-unsplash.jpg` | Main app background, photo by Maria Orlova on Unsplash |
 | `evan-wise-2wvXI4mjYJ8-unsplash.jpg` | Where Are We? background, photo by Evan Wise on Unsplash |
 | `evan-wise-mNSSpeJsnQA-unsplash.jpg` | Journey Mode background, photo by Evan Wise on Unsplash |
+| `denise-jans-XCJt9Z3_0Ks-unsplash.jpg` | Web background for Home, Where Are We?, Search, state pages, park pages, and Saved Parks; photo by Denise Jans on Unsplash |
+| `kyle-loftus-IG1m3RomhPI-unsplash.jpg` | Web background for Journey Mode; photo by Kyle Loftus on Unsplash |
 | National Park Service API images | Park, gallery, featured-location, and profile images with NPS-provided credits shown in the app |
 
 ## Setup, API Keys, and Local Development
@@ -412,4 +415,4 @@ Defend the Parks by mp3li is source-available for educational review, instructor
 
 The top README GIF is built from all 23 iPhone screenshots captured during app testing. Feature GIFs are grouped by Homepage, Search, Where Are We?, Journey Mode, Saved Parks, and Jump To flows. Static README screenshots are copied into `docs/readme-assets/screenshots/` with descriptive filenames.
 
-Park images and photo credits shown inside the app come from National Park Service API records. App background images are credited above: Maria Orlova on Unsplash for the main background and Evan Wise on Unsplash for the Where Are We? and Journey Mode backgrounds.
+Park images and photo credits shown inside the app come from National Park Service API records. App background images are credited above for Maria Orlova, Evan Wise, Denise Jans, and Kyle Loftus on Unsplash.

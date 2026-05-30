@@ -6,7 +6,7 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AccessibleButton } from '@/components/accessible-button';
-import { ResponsiveContainer } from '@/components/responsive-layout';
+import { ResponsiveContainer, webReadableContentStyle } from '@/components/responsive-layout';
 import { glassSurfaceStyle, ScreenBackground } from '@/components/screen-background';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -14,6 +14,7 @@ import { useAppStateContext } from '@/context/app-state-context';
 import { usePageSections } from '@/context/page-sections-context';
 import { useSavedParks } from '@/context/saved-parks-context';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
+import { PAGE_SCROLL_NATIVE_ID } from '@/utils/jump-to-section';
 
 export default function SavedParksScreen() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function SavedParksScreen() {
     <SafeAreaView edges={['left', 'right']} style={styles.safeArea}>
       <ScreenBackground>
         <ResponsiveContainer style={{ gap: padding }}>
-        <ThemedView style={[styles.card, glassSurfaceStyle, { gap }]}>
+        <ThemedView style={[webReadableContentStyle, styles.card, glassSurfaceStyle, { gap }]}>
           <ThemedText type="title" accessibilityRole="header">
             My Saved Parks
           </ThemedText>
@@ -55,9 +56,10 @@ export default function SavedParksScreen() {
           <ThemedText>Loading your saved parks...</ThemedText>
         ) : (
           <FlatList
+            nativeID={PAGE_SCROLL_NATIVE_ID}
             data={savedParks}
             keyExtractor={(item) => item.parkCode}
-            contentContainerStyle={{ gap, paddingBottom: 28 }}
+            contentContainerStyle={[webReadableContentStyle, { gap, paddingBottom: 28 }]}
             renderItem={({ item }) => (
               <ThemedView style={[styles.card, glassSurfaceStyle, { gap }]}>
                 <ThemedText type="defaultSemiBold">{item.fullName}</ThemedText>

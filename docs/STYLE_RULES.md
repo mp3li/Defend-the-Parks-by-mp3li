@@ -8,7 +8,8 @@ These rules keep Defend the Parks by mp3li visually consistent as the app grows.
 - Keep the fixed app title visible on every screen.
 - Do not repeat the full app title as a large heading inside the first content card on Home.
 - No page heading should be visually larger than the fixed app title.
-- Use **Search** as the bottom navigation label for the state search flow.
+- Use **Search** as the mobile bottom navigation label for the state search flow.
+- Use **Search by State** in the web header navigation.
 - Use **Where Are We?** and **Journey Mode** for the location modes.
 
 ## Palette
@@ -29,7 +30,7 @@ Rules:
 - Use dark green/night colors for navigation structure.
 - Use campfire/cedar as action and accent colors.
 - Use Cedar `#66310c` for section headers across the app.
-- Use Ivory `#f7efe2` for selected bottom navigation text/icons and app-title text.
+- Use Ivory `#f7efe2` for selected mobile bottom navigation text/icons, selected web header navigation text/icons, and app-title text.
 - Use ivory only when contrast is needed for readable surfaces or text.
 - Avoid returning to the previous Yosemite palette unless the theme is intentionally changed.
 
@@ -54,7 +55,8 @@ Rules:
 - Build mobile-first screens.
 - Use `ResponsiveContainer` and `useResponsiveLayout` for spacing.
 - Keep the global app header fixed at the top.
-- Keep the tab bar fixed at the bottom.
+- Keep the tab bar fixed at the bottom on mobile.
+- On web, hide the bottom tab bar and use header navigation with text plus icons.
 - Place long-screen navigation in the **Jump To** compass menu.
 - Use the Back strip only after the user leaves Home.
 - Back should follow navigation history; Return to Homepage should go directly to Home.
@@ -68,9 +70,11 @@ Rules:
 ## Backgrounds and Surfaces
 
 - Use `ScreenBackground` for image backgrounds.
-- Use the Maria Orlova image for the main app background.
-- Use `evan-wise-2wvXI4mjYJ8-unsplash` for Where Are We?.
-- Use `evan-wise-mNSSpeJsnQA-unsplash` for Journey Mode.
+- Use the Maria Orlova image for the mobile main app background.
+- Use `evan-wise-2wvXI4mjYJ8-unsplash` for mobile Where Are We?.
+- Use `evan-wise-mNSSpeJsnQA-unsplash` for mobile Journey Mode.
+- Use `denise-jans-XCJt9Z3_0Ks-unsplash` for web Home, Where Are We?, Search, state pages, park pages, and Saved Parks.
+- Use `kyle-loftus-IG1m3RomhPI-unsplash` for web Journey Mode.
 - Use the shared in-app compass visual style on Where Are We?, Journey Mode, and the Jump To button: night face, campfire border, faint ivory crosshairs, campfire upper needle, and ivory lower needle.
 - Backgrounds should stay dimmed/glassy enough for text readability.
 - Use shared glass surface styles from `components/screen-background.tsx`.
@@ -98,10 +102,12 @@ Button rules:
 
 Collapsible section rules:
 
-- Use collapsible previews for long content sections after the featured park save button.
+- Use collapsible previews for long content sections on mobile after the featured park save button.
+- On web, do not use collapsible sections except for National Parks Picture Gallery.
 - National Parks Picture Gallery should show one park image in preview and more images when expanded.
+- National Parks Picture Gallery should page additional images on web instead of rendering the entire gallery at once.
 - National Parks Picture Gallery should use the same flat section treatment everywhere it appears.
-- Auto-collapse long sections while showing a preview.
+- Auto-collapse long sections while showing a preview on mobile only.
 - Do not show an expand arrow on short sections with nothing else to reveal.
 - Do not measure content during scroll in a way that changes layout and causes jumps.
 
